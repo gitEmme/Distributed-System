@@ -66,7 +66,7 @@ public class Client implements Runnable{
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		Stub clientStub = new Stub(50001,"localhost");
+		Stub clientStub = new Stub(50001,"localhost",50002,"localhost");
 		boolean exit= false;	
 		sc = new Scanner(System.in);
 		

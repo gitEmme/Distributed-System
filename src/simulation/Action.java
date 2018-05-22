@@ -17,6 +17,8 @@ public class Action implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotFeedBac
 	private String move;
 	private int lastPercentV;
 	private int lastPercentH;
+	private int fbV;
+	private int fbH;
 	
 	public Action() {
 		simul = CaDSEV3RobotHAL.createInstance(CaDSEV3RobotType.SIMULATION, this, this);
@@ -25,12 +27,23 @@ public class Action implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotFeedBac
 		this.move="down";
 		this.lastPercentV=0;
 		this.lastPercentH=0;
+		this.fbH=0;
+		this.fbV=0;
 	}
 	
 	@Override
 	public void giveFeedbackByJSonTo(JSONObject arg0) {
 		// TODO Auto-generated method stub
-		
+		String state= arg0.get("state").toString();
+		if(arg0.containsKey("percent")) {
+			int p=Integer.parseInt((String)arg0.get("percent").toString());
+			if(state.equals("vertical")) {
+				this.fbV=p;
+			}
+			if(state.equals("horizontal")) {
+				this.fbH=p;
+			}
+		}
 	}
 
 	@Override
@@ -45,7 +58,7 @@ public class Action implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotFeedBac
 				System.out.println(pMove);
 				if((pMove>=percentV&&move.equals("up"))||(pMove<=percentV&&move.equals("down"))){
 					simul.stop_v();
-					//simul.giveFeedbackByJSonTo(arg0);
+					simul.giveFeedbackByJSonTo(arg0);
 				}
 			}
 			if(state.equals("horizontal")) {
@@ -53,7 +66,7 @@ public class Action implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotFeedBac
 				System.out.println(pMove);
 				if((pMove>=percentH&&move.equals("left"))||(pMove<=percentH&&move.equals("right"))){
 					simul.stop_h();
-					//simul.giveFeedbackByJSonTo(arg0);
+					simul.giveFeedbackByJSonTo(arg0);
 				}
 			}			
 		}
@@ -65,33 +78,33 @@ public class Action implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotFeedBac
 		switch(string) {
 		case "up" : 
 			this.percentV=Math.min(100,this.percentV+integer);
-			this.lastPercentV=this.percentV;
 			simul.moveUp();
+			this.lastPercentV=this.fbV;
 			break;
 		case "down" :
 			this.percentV=Math.max(0,this.percentV-integer);
-			this.lastPercentV=this.percentV;
 			simul.moveDown();
+			this.lastPercentV=this.fbV;
 			break;
 		}
-		return this.percentV;
+		return this.fbV;
 	}
 
 	public int moveHorizontal(int integer, String string) {
+		this.move=string;
 		switch(string) {
 		case "left" : 
 			this.percentH=Math.min(100,this.lastPercentH+integer);
-			this.lastPercentH=this.percentH;
 			simul.moveLeft();
-			
+			this.lastPercentH=this.fbH;
 			break;
 		case "right" : 
 			this.percentH=Math.max(0,this.lastPercentH-integer);
-			this.lastPercentH=this.percentH;
 			simul.moveRight();
+			this.lastPercentH=this.fbH;
 			break;
 		}
-		return this.percentH;
+		return this.fbH;
 	}
 	
 	public String getMove() {

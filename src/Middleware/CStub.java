@@ -3,8 +3,7 @@ package Middleware;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 public class CStub implements moveAround {
-	private Sender sender=new Sender();
-	private Receiver receiver;
+	private Connection sender=new Connection();
 	private JSONObject message;
 	private static int counter=1;
 	

@@ -8,27 +8,37 @@ import org.json.simple.JSONObject;
 
 import simulation.Action;
 public class Skeleton implements Runnable, moveAround {
-	private Sender sender;
-	private Receiver receiver;
+	private Connection network;
 	Action action=new Action();
 	private int port;
 	public Skeleton(int port) {
 		this.port=port;
 	}
 	
-	public void execute(String mName, int first,String second ) {
+	public int execute(String mName, int first,String second ) {
+		int result=0;
 		switch (mName) {
 		case "moveVertical":
-			moveVertical(first,second);
+			result=moveVertical(first,second);
 			break;
 		case "moveHorizontal":
-	    	 moveHorizontal(first,second);
+	    	 result=moveHorizontal(first,second);
 	    	 break;
 	    }
+		return result;
 	}
-	public CProcedure unmarshall() {
-		receiver=new Receiver();
-		JSONObject received=(JSONObject) receiver.recvObjFrom(this.port);
+	public CEnvelope unmarshall() {
+		network=new Connection();
+		JSONObject received=(JSONObject) network.recvObjFrom(this.port);
+		CEnvelope env= new CEnvelope();
+		CHeader h= new CHeader();
+		JSONObject header= (JSONObject) received.get("header");
+		h.setProcedureID((String)header.get("procedureID"));
+		h.setStubAddress((String)header.get("stubAddress"));
+		h.setStubPort((Integer)header.get("stubPort"));
+		h.setServiceName((String)header.get("serviceName"));
+		h.setSourceName((String) header.get("sourceName"));
+		env.setHeader(h);
 		JSONObject body=(JSONObject) received.get("body");
 		String methodName=(String) body.get("methodName");
 		String returnType= (String) body.get("returnType");
@@ -43,17 +53,27 @@ public class Skeleton implements Runnable, moveAround {
 			CParameter unmPar = new CParameter(name,type,position);
 			procedure.AddParam(unmPar);
 		}
+		env.setProcedure(procedure);
 		System.out.println(body.toJSONString());
-		return procedure;
+		return env;
 	}
 
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
 		while(true) {
-			CProcedure invoked=unmarshall();
-		    execute(invoked.getName(),Integer.parseInt(invoked.getParam(1).getName()),invoked.getParam(2).getName());
+			CEnvelope envelope=unmarshall();
+			CHeader head=envelope.getHeader();
+			CProcedure invoked=envelope.getProcedure();
+		    int p=execute(invoked.getName(),Integer.parseInt(invoked.getParam(1).getName()),invoked.getParam(2).getName());
 		    System.out.println("executed!");
+		    int stubPort=head.getStubPort();
+		    String stubAddr=head.getStubAddress();
+		    network=new Connection();
+			JSONObject result=new JSONObject();
+			result.put("result", p);
+			network.sendTo(result, stubAddr, stubPort);
+			
 		}
 		
 	}

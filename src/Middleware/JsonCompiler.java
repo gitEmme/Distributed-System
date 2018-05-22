@@ -152,10 +152,19 @@ public class JsonCompiler {
         stub.append("import org.json.simple.JSONArray;\n");
         stub.append("import org.json.simple.JSONObject;\n");
         stub.append("public class CStub implements "+JsonCompiler.getNameInterfaccia(file)+" {\n\t");
-        stub.append("private Sender sender=new Sender();\n\t");
-        stub.append("private Receiver receiver;\n\t");
+        stub.append("private Connection network=new Connection();\n\t");
         stub.append("private JSONObject message;\n\t");
         stub.append("private static int counter=1;\n\t");
+        stub.append("private int stubPort=0;\n\t");
+        stub.append("private String stubAddress;\n\t");
+        stub.append("private int port;\n\t");
+        stub.append("private String address;\n\t\n\t");
+        stub.append("public Stub(int port, String address, int stubPort, String stubAddress) {\n\t\t");
+        stub.append("this.port=port;\n\t\t");
+        stub.append("this.address=address;\n\t\t");
+        stub.append("this.stubAddress=stubAddress;\n\t\t");
+        stub.append("this.stubPort=stubPort;\n\t");
+        stub.append("}\n\t");
         for (String mName : methods.keySet()) {
         	String ovverride=JsonCompiler.marshallToJson(methods.get(mName));
         	stub.append(ovverride);

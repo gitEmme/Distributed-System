@@ -4,22 +4,28 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 public class Stub implements moveAround {
-	private Sender sender=new Sender();
-	private Receiver receiver;
+	private Connection network;
 	private JSONObject message;
 	private static int counter=0;
+	private int stubPort=0;
+	private String stubAddress;
 	private int port;
 	private String address;
-	public Stub(int port, String address) {		
+	
+	public Stub(int port, String address, int stubPort, String stubAddress) {		
 		this.port=port;
 		this.address=address;
+		this.stubAddress=stubAddress;
+		this.stubPort=stubPort;
 	}
 	
 	public void marshall(String methodName,int integer,String string) {
 		message=new JSONObject();
 		JSONObject header=new JSONObject();
 		header.put("serviceName","moveAround");
-		header.put("source","clientStub");
+		header.put("sourceName","clientStub");
+		header.put("stubAddress",stubAddress);
+		header.put("stubPort",stubPort);
 		header.put("id",methodName+Integer.toString(counter));
 		message.put("header", header);
 		JSONObject body=new JSONObject();
@@ -40,7 +46,9 @@ public class Stub implements moveAround {
 		message.put("body", body);
 		System.out.println(message.toJSONString());
 		counter++;
-		sender.sendTo(message,this.address,port);
+		network=new Connection();
+		network.sendTo(message,this.address,port);
+		System.out.println(network.recvObjFrom(this.stubPort).toString());
 	}
 
 
