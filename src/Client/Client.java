@@ -12,6 +12,7 @@ import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Scanner;
 
+import Middleware.Skeleton;
 import Middleware.Stub;
 
 public class Client implements Runnable{
@@ -150,6 +151,11 @@ public class Client implements Runnable{
 	}
 	*/
 	public static void main(String[] args) throws IOException {
+		/*
+		Skeleton sk= new Skeleton(50001);
+		Thread s = new Thread(sk);
+		s.start();
+		*/
 		Client client = new Client(); //gustavo's ip 192.168.1.236 
 		Thread c = new Thread(client);
 		c.start();

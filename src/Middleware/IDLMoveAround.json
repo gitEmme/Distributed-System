@@ -1,6 +1,6 @@
 {
     "ServiceName": "IDLMoveAround",
-    "Function": "moveAround",
+    "Function": "Action",
     "Functions": [{
         "name": "moveHorizontal",
         "parameters": [{

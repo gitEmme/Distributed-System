@@ -15,6 +15,19 @@ public class Skeleton implements Runnable, moveAround {
 		this.port=port;
 	}
 	
+	public int execute(CProcedure p) {
+		int result=0;
+		switch (p.getName()) {
+		case "moveVertical":
+			result=moveVertical((int)p.getParam(1).getValue(p.getParam(1).getName()),(String)p.getParam(2).getValue(p.getParam(2).getName()));
+			break;
+		case "moveHorizontal":
+			result=moveHorizontal((int)p.getParam(1).getValue(p.getParam(1).getName()),(String)p.getParam(2).getValue(p.getParam(2).getName()));
+			break;
+		}
+		return result;
+	}
+/*	
 	public int execute(String mName, int first,String second ) {
 		int result=0;
 		switch (mName) {
@@ -27,6 +40,8 @@ public class Skeleton implements Runnable, moveAround {
 	    }
 		return result;
 	}
+	*/
+	
 	public CEnvelope unmarshall() {
 		network=new Connection();
 		JSONObject received=(JSONObject) network.recvObjFrom(this.port);
@@ -65,8 +80,9 @@ public class Skeleton implements Runnable, moveAround {
 			CEnvelope envelope=unmarshall();
 			CHeader head=envelope.getHeader();
 			CProcedure invoked=envelope.getProcedure();
-		    int p=execute(invoked.getName(),Integer.parseInt(invoked.getParam(1).getName()),invoked.getParam(2).getName());
-		    System.out.println("executed!");
+		    //int p=execute(invoked.getName(),Integer.parseInt(invoked.getParam(1).getName()),invoked.getParam(2).getName());
+		    int p=execute(invoked);
+			System.out.println("executed!");
 		    int stubPort=head.getStubPort();
 		    String stubAddr=head.getStubAddress();
 		    network=new Connection();

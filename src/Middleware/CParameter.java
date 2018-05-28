@@ -34,6 +34,14 @@ public class CParameter {
 		}else {
 			return this.type.getClass();
 		}
+	}
+	public Object getValue(String name) {
+		if(type.equals("int")) {
+			return Integer.parseInt(this.name);
+		}else {
+			return name;
+		}
+	}
 }
-}
+
 	
