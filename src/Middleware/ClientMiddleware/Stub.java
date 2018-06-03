@@ -2,7 +2,7 @@ package Middleware.ClientMiddleware;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-
+import Middleware.*;
 import Middleware.Connection;
 import Middleware.MoveAround;
 
@@ -51,9 +51,10 @@ public class Stub implements MoveAround {
 		counter++;
 		network=new Connection();
 		network.sendTo(message,this.address,port);
-		String res= network.recvObjFrom(this.stubPort).toString();
-		int result=Integer.parseInt(res);
-		System.out.println(res);
+		JSONObject back = (JSONObject)network.recvObjFrom(this.stubPort);
+		int result= (int)back.get("result");
+		//int result=Integer.parseInt(res);
+		System.out.println(result);
 	}
 
 

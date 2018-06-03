@@ -364,7 +364,7 @@ public class JsonCompiler {
 		marshall.append("network=new Connection();\n\t");
 		marshall.append("network.sendTo(message,this.address,port);\n\t");
 		marshall.append("JSONObject res= (JSONObject) network.recvObjFrom(this.stubPort);\n\t");
-		marshall.append("int result=Integer.parseInt((String)res.get(\"result\"));\n\t");
+		marshall.append("int result=(int)res.get(\"result\");\n\t");
 		if(p.getReturnType().equals("int")) {
 			marshall.append("return result;\n");
 		}else {

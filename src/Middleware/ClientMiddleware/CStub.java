@@ -47,7 +47,7 @@ public int moveHorizontal(int integer, String string) {
 	network=new Connection();
 	network.sendTo(message,this.address,port);
 	JSONObject res= (JSONObject) network.recvObjFrom(this.stubPort);
-	int result=Integer.parseInt((String)res.get("result"));
+	int result=(int)res.get("result");
 	return result;
 	}
 
@@ -79,7 +79,7 @@ public int moveVertical(int integer, String string) {
 	network=new Connection();
 	network.sendTo(message,this.address,port);
 	JSONObject res= (JSONObject) network.recvObjFrom(this.stubPort);
-	int result=Integer.parseInt((String)res.get("result"));
+	int result=(int)res.get("result");
 	return result;
 	}
 
