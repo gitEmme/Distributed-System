@@ -26,6 +26,9 @@ public class JsonCompiler {
 			System.out.println("Interface generated!");
 			JsonCompiler.createStub(fileJson);
 			System.out.println("Stub generated!");
+			JsonCompiler.createSkeleton(fileJson);
+			System.out.println("Skeleton generated!");
+			
     }
 	
 	private static String writeInterface(String file) throws IOException {
@@ -43,31 +46,11 @@ public class JsonCompiler {
          }
          interfaccia.append("}");
          System.out.println(interfaccia.toString());
-         JsonCompiler.writeToFile(Function, interfaccia.toString());
+         JsonCompiler.writeToFile("/home/dude/VS/src/git/CaDSPracticalExamVS/src/Middleware/",Function, interfaccia.toString());
          return interfaccia.toString();
 	}
 	
 	private static String getNameInterfaccia(String file) {
-		JSONParser parser = new JSONParser();
-		String Function=new String();
-		try {
-            Object obj = parser.parse(new FileReader(file));
-            JSONObject jsonObject = (JSONObject) obj;
-            //System.out.println(jsonObject.size());
-            String ServiceName = (String) jsonObject.get("ServiceName");
-            //System.out.println(ServiceName);
-            Function= (String) jsonObject.get("Function");
-			}catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-		return Function;
-	}
-	
-	private static String getNameService(String file) {
 		JSONParser parser = new JSONParser();
 		String ServiceName=new String();
 		try {
@@ -76,6 +59,7 @@ public class JsonCompiler {
             //System.out.println(jsonObject.size());
             ServiceName = (String) jsonObject.get("ServiceName");
             //System.out.println(ServiceName);
+            //Function= (String) jsonObject.get("Function");
 			}catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -84,6 +68,25 @@ public class JsonCompiler {
                 e.printStackTrace();
             }
 		return ServiceName;
+	}
+	
+	private static String getServerName(String file) {
+		JSONParser parser = new JSONParser();
+		String Function=new String();
+		try {
+            Object obj = parser.parse(new FileReader(file));
+            JSONObject jsonObject = (JSONObject) obj;
+            //System.out.println(jsonObject.size());
+            Function= (String) jsonObject.get("Function");
+            //System.out.println(ServiceName);
+			}catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+		return Function;
 	}
 	
 	private static HashMap<String,CProcedure> fromJson(String file){
@@ -148,9 +151,10 @@ public class JsonCompiler {
 	public static void createStub(String file) throws IOException {
 		HashMap<String,CProcedure> methods=JsonCompiler.fromJson(file);
         StringBuffer stub= new StringBuffer();
-        stub.append("package Middleware;\n\n");      
+        stub.append("package Middleware.ClientMiddleware;\n\n");      
         stub.append("import org.json.simple.JSONArray;\n");
         stub.append("import org.json.simple.JSONObject;\n");
+        stub.append("import Middleware.*;\n");
         stub.append("public class CStub implements "+JsonCompiler.getNameInterfaccia(file)+" {\n\t");
         stub.append("private Connection network=new Connection();\n\t");
         stub.append("private JSONObject message;\n\t");
@@ -159,7 +163,7 @@ public class JsonCompiler {
         stub.append("private String stubAddress;\n\t");
         stub.append("private int port;\n\t");
         stub.append("private String address;\n\t\n\t");
-        stub.append("public Stub(int port, String address, int stubPort, String stubAddress) {\n\t\t");
+        stub.append("public CStub(int port, String address, int stubPort, String stubAddress) {\n\t\t");
         stub.append("this.port=port;\n\t\t");
         stub.append("this.address=address;\n\t\t");
         stub.append("this.stubAddress=stubAddress;\n\t\t");
@@ -172,8 +176,153 @@ public class JsonCompiler {
         }
         stub.append("\n}");
         System.out.println(stub.toString());
-        JsonCompiler.writeToFile("CStub", stub.toString());
+        JsonCompiler.writeToFile("/home/dude/VS/src/git/CaDSPracticalExamVS/src/Middleware/ClientMiddleware/","CStub", stub.toString());
 		
+	}
+	
+	public static void createSkeleton(String file) throws IOException {
+		HashMap<String,CProcedure> methods=JsonCompiler.fromJson(file);
+        StringBuffer sk= new StringBuffer();
+        String serverName=JsonCompiler.getServerName(file);
+		sk.append("package Middleware.ServerMiddleware;\n");
+		sk.append("import Middleware.*;\n");
+		sk.append("import java.util.Iterator;\n");
+		sk.append("import org.json.simple.JSONArray;\n");
+		sk.append("import org.json.simple.JSONObject;\n");
+		sk.append("import Server."+serverName+";\n\n");
+		sk.append("public class CSkeleton implements Runnable, "+JsonCompiler.getNameInterfaccia(file)+" {\n\t");
+		sk.append("private Connection network;\n\t");
+		sk.append(serverName+" action=new "+serverName+"();\n\t");
+		sk.append("private int port;\n\t");
+		sk.append("public CSkeleton(int port) {\n\t\t");
+		sk.append("this.port=port;\n\t");
+		sk.append("}\n\t\n");
+		
+		sk.append("public int execute(CProcedure p) {\n\t\t");
+		sk.append("int result=0;\n\t\t");
+		sk.append("switch (p.getName()) {\n\t\t\t");
+		for (String mName : methods.keySet()) {
+			sk.append("case \""+mName+"\":\n\t\t\t\t");
+			CProcedure p=methods.get(mName);
+			sk.append("result= "+mName+"(");
+			for(int i=1;i<=p.GetParamsCount();i++) {
+				//StringBuffer call= new StringBuffer();
+				//if(i>2) {
+					//sk.append(", ");
+				//}
+				if(p.getParam(i).getType().equals("int")) {
+					sk.append("(int)p.getParam("+i+").getValue(p.getParam("+i+").getName())");
+				}else {
+					sk.append("(String)p.getParam("+i+").getValue(p.getParam("+i+").getName())");
+				}
+				if(i!=p.GetParamsCount()) {
+					sk.append(", ");
+					}else {
+						sk.append(");\n\t\t\t\t");
+					}
+			}
+			//sk.append(");\n\t\t\t\t");
+			sk.append("break;\n\t\t\t");
+		}
+		sk.append("}\n\t\t\t");
+		sk.append("return result;\n\t\t\t");
+		sk.append("}\n\n\t");
+	
+	 //this part is just to copied as it is from Stub
+	sk.append("public CEnvelope unmarshall() {\n\t\t");
+	sk.append("network=new Connection();\n\t\t");
+	sk.append("JSONObject received=(JSONObject) network.recvObjFrom(this.port);\n\t\t");
+	sk.append("CEnvelope env= new CEnvelope();\n\t\t");
+	sk.append("CHeader h= new CHeader();\n\t\t");
+	sk.append("JSONObject header= (JSONObject) received.get(\"header\");\n\t\t");
+	sk.append("h.setProcedureID((String)header.get(\"procedureID\"));\n\t\t");
+	sk.append("h.setStubAddress((String)header.get(\"stubAddress\"));\n\t\t");
+	sk.append("h.setStubPort((Integer)header.get(\"stubPort\"));\n\t\t");
+	sk.append("h.setServiceName((String)header.get(\"serviceName\"));\n\t\t");
+	sk.append("h.setSourceName((String) header.get(\"sourceName\"));\n\t\t");
+	sk.append("env.setHeader(h);\n\t\t");
+	sk.append("JSONObject body=(JSONObject) received.get(\"body\");\n\t\t");
+	sk.append("String methodName=(String) body.get(\"methodName\");\n\t\t");
+	sk.append("String returnType= (String) body.get(\"returnType\");\n\t\t");
+	sk.append("JSONArray params = (JSONArray) body.get(\"parameters\");\n\t\t");
+	sk.append("CProcedure procedure= new CProcedure(methodName, returnType);\n\t\t");
+	sk.append("Iterator<JSONObject> paramsIterator = params.iterator();\n\t\t");
+	sk.append("while (paramsIterator.hasNext()) {\n\t\t\t");
+	sk.append("JSONObject param= paramsIterator.next();\n\t\t\t");
+	sk.append("String type = (String) param.get(\"type\");\n\t\t\t");
+	sk.append("String name = (String) param.get(\"name\");\n\t\t\t");
+	sk.append("int position= Integer.parseInt((String)param.get(\"position\"));\n\t\t\t");
+	sk.append("CParameter unmPar = new CParameter(name,type,position);\n\t\t\t");
+	sk.append("procedure.AddParam(unmPar);\n\t\t\t");
+	sk.append("}\n\t\t");
+	sk.append("env.setProcedure(procedure);\n\t\t");
+	sk.append("System.out.println(body.toJSONString());\n\t\t");
+	sk.append("return env;\n\t\t");
+	sk.append("}\n\n\t");
+
+	//@Override
+	sk.append("public void run() {\n\t");
+		// TODO Auto-generated method stub
+	sk.append("while(true) {\n\t\t");
+	sk.append("CEnvelope envelope=unmarshall();\n\t\t");
+	sk.append("CHeader head=envelope.getHeader();\n\t\t");
+	sk.append("CProcedure invoked=envelope.getProcedure();\n\t\t");
+		    //int p=execute(invoked.getName(),Integer.parseInt(invoked.getParam(1).getName()),invoked.getParam(2).getName());
+	sk.append("int p=execute(invoked);\n\t\t");
+	sk.append("System.out.println(\"executed!\");\n\t\t");
+	sk.append("int stubPort=head.getStubPort();\n\t\t");
+	sk.append("String stubAddr=head.getStubAddress();\n\t\t");
+	sk.append("network=new Connection();\n\t\t");
+	sk.append("JSONObject result=new JSONObject();\n\t\t");
+	sk.append("result.put(\"result\", p);\n\t\t");
+	sk.append("network.sendTo(result, stubAddr, stubPort);\n\t\t");
+	sk.append("}\n\t");
+	sk.append("}\n\n\t");
+	//this part is to finish
+	for (String mName : methods.keySet()) {
+		CProcedure procedura=methods.get(mName);
+		String sig=JsonCompiler.createSignature(mName, procedura);
+		sk.append("public "+sig+" {\n\t\t");
+		sk.append(procedura.getReturnType()+" p = action."+procedura.getName()+"(");
+		for(int i=1;i<=procedura.GetParamsCount();i++) {
+			//StringBuffer call= new StringBuffer();
+			sk.append(procedura.getParam(i).getName());
+			if(i!=procedura.GetParamsCount()) {
+				sk.append(", ");
+				}else {
+					sk.append(");\n\t\t");
+				}
+		}
+		sk.append("return p;\n\t}\n\n\t");	
+	}
+	sk.append("public static void main(String[] args) {\n\t\t");
+	sk.append("Skeleton sk= new Skeleton(50001);\n\t\t");
+	sk.append("Thread s = new Thread(sk);\n\t\t");
+	sk.append("s.start();\n\t\t");
+	sk.append("}\n\t}");
+	
+	System.out.println(sk.toString());
+    JsonCompiler.writeToFile("/home/dude/VS/src/git/CaDSPracticalExamVS/src/Middleware/ServerMiddleware/","CSkeleton", sk.toString());
+	
+	/*
+	@Override
+	public int moveHorizontal(int integer, String string) {
+		//action.setMove(string);
+		int p =action.moveHorizontal(integer, string);
+		return p;
+	}
+
+	@Override
+	public int moveVertical(int integer, String string) {
+		//action.setMove(string);
+		int p=action.moveVertical(integer, string);
+		return p;
+	}
+	
+	
+
+	}
+	*/
 	}
 	
 	public static String marshallToJson(CProcedure p) {
@@ -211,9 +360,13 @@ public class JsonCompiler {
 		marshall.append("message.put(\"body\", body);\n\t");
 		marshall.append("System.out.println(message.toJSONString());\n\t");
 		marshall.append("counter++;\n\t");	
-		marshall.append("sender.sendTo(message, \"localhost\", 50001);\n\t");
+		//marshall.append("sender.sendTo(message, \"localhost\", 50001);\n\t");
+		marshall.append("network=new Connection();\n\t");
+		marshall.append("network.sendTo(message,this.address,port);\n\t");
+		marshall.append("JSONObject res= (JSONObject) network.recvObjFrom(this.stubPort);\n\t");
+		marshall.append("int result=Integer.parseInt((String)res.get(\"result\"));\n\t");
 		if(p.getReturnType().equals("int")) {
-			marshall.append("return 1;\n");
+			marshall.append("return result;\n");
 		}else {
 		}
 		marshall.append("\t}\n");
@@ -244,9 +397,10 @@ public class JsonCompiler {
 		
 	}
 	
-	 private static void writeToFile(String objectName, String classString) throws IOException {
+	 private static void writeToFile(String path, String objectName, String classString) throws IOException {
 	        String fileName;
-	        fileName = "/home/dude/VS/src/git/CaDSPracticalExamVS/src/Middleware/" + objectName + ".java";
+	        //"/home/dude/VS/src/git/CaDSPracticalExamVS/src/Middleware/"
+	        fileName = path + objectName + ".java";
 	        PrintWriter writer = new PrintWriter(new FileWriter(new File(fileName)));
 	        writer.print(classString);
 	        writer.flush();

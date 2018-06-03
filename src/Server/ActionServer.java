@@ -1,4 +1,4 @@
-package simulation;
+package Server;
 
 import org.cads.ev3.middleware.CaDSEV3RobotHAL;
 import org.cads.ev3.middleware.CaDSEV3RobotType;
@@ -6,9 +6,9 @@ import org.cads.ev3.middleware.hal.ICaDSEV3RobotFeedBackListener;
 import org.cads.ev3.middleware.hal.ICaDSEV3RobotStatusListener;
 import org.json.simple.JSONObject;
 
-import Middleware.Skeleton;
+import Middleware.ServerMiddleware.Skeleton;
 
-public class Action implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotFeedBackListener{
+public class ActionServer implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotFeedBackListener{
 
 	protected CaDSEV3RobotHAL simul;
 	
@@ -20,7 +20,7 @@ public class Action implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotFeedBac
 	private int fbV;
 	private int fbH;
 	
-	public Action() {
+	public ActionServer() {
 		simul = CaDSEV3RobotHAL.createInstance(CaDSEV3RobotType.SIMULATION, this, this);
 		this.percentV=0;
 		this.percentH=0;

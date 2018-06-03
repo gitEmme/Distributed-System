@@ -12,8 +12,8 @@ import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Scanner;
 
-import Middleware.Skeleton;
-import Middleware.Stub;
+import Middleware.ClientMiddleware.Stub;
+import Middleware.ServerMiddleware.Skeleton;
 
 public class Client implements Runnable{
 	/*

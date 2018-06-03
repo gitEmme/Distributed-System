@@ -1,16 +1,28 @@
-package Middleware;
+package Middleware.ClientMiddleware;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-public class CStub implements moveAround {
-	private Connection sender=new Connection();
+import Middleware.*;
+public class CStub implements MoveAround {
+	private Connection network=new Connection();
 	private JSONObject message;
 	private static int counter=1;
+	private int stubPort=0;
+	private String stubAddress;
+	private int port;
+	private String address;
+	
+	public CStub(int port, String address, int stubPort, String stubAddress) {
+		this.port=port;
+		this.address=address;
+		this.stubAddress=stubAddress;
+		this.stubPort=stubPort;
+	}
 	
 public int moveHorizontal(int integer, String string) {
 	message=new JSONObject();
 	JSONObject header=new JSONObject();
-	header.put("serviceName","IDLMoveAround");
+	header.put("serviceName","MoveAround");
 	header.put("source","clientStub");
 	header.put("id","moveHorizontal"+Integer.toString(counter));
 	message.put("header", header);
@@ -32,14 +44,17 @@ public int moveHorizontal(int integer, String string) {
 	message.put("body", body);
 	System.out.println(message.toJSONString());
 	counter++;
-	sender.sendTo(message, "localhost", 50001);
-	return 1;
+	network=new Connection();
+	network.sendTo(message,this.address,port);
+	JSONObject res= (JSONObject) network.recvObjFrom(this.stubPort);
+	int result=Integer.parseInt((String)res.get("result"));
+	return result;
 	}
 
 public int moveVertical(int integer, String string) {
 	message=new JSONObject();
 	JSONObject header=new JSONObject();
-	header.put("serviceName","IDLMoveAround");
+	header.put("serviceName","MoveAround");
 	header.put("source","clientStub");
 	header.put("id","moveVertical"+Integer.toString(counter));
 	message.put("header", header);
@@ -61,8 +76,11 @@ public int moveVertical(int integer, String string) {
 	message.put("body", body);
 	System.out.println(message.toJSONString());
 	counter++;
-	sender.sendTo(message, "localhost", 50001);
-	return 1;
+	network=new Connection();
+	network.sendTo(message,this.address,port);
+	JSONObject res= (JSONObject) network.recvObjFrom(this.stubPort);
+	int result=Integer.parseInt((String)res.get("result"));
+	return result;
 	}
 
 }
