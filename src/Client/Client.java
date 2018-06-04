@@ -12,6 +12,7 @@ import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Scanner;
 
+import Middleware.ClientMiddleware.CStub;
 import Middleware.ClientMiddleware.Stub;
 import Middleware.ServerMiddleware.Skeleton;
 
@@ -67,9 +68,10 @@ public class Client implements Runnable{
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		Stub clientStub = new Stub(50001,"localhost",50002,"localhost");
+		CStub clientStub = new CStub(50001,"localhost",50002,"localhost");
 		boolean exit= false;	
 		sc = new Scanner(System.in);
+		int risultato=0;
 		
 		while(true && !exit) {
 				this.menu();
@@ -82,16 +84,20 @@ public class Client implements Runnable{
 				System.out.println("["+command+"]");
 				switch(command) {
 				case "left" : 
-					clientStub.moveHorizontal(p,command);
+					risultato=clientStub.moveHorizontal(p,command);
+					System.out.println("position horizontal: " + Integer.toString(risultato));
 					break;
 				case "right" : 
-					clientStub.moveHorizontal(p,command);
+					risultato=clientStub.moveHorizontal(p,command);
+					System.out.println("position horizontal: " + Integer.toString(risultato));
 					break;
 				case "up" : 
-					clientStub.moveVertical(p,command);
+					risultato=clientStub.moveVertical(p,command);
+					System.out.println("position vertical: " + Integer.toString(risultato));
 					break;
 				case "down" : 
-					clientStub.moveVertical(p,command);
+					risultato=clientStub.moveVertical(p,command);
+					System.out.println("position vertical: " + Integer.toString(risultato));
 					break;
 				}
 				

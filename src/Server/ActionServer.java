@@ -7,6 +7,7 @@ import org.cads.ev3.middleware.hal.ICaDSEV3RobotStatusListener;
 import org.json.simple.JSONObject;
 
 import Middleware.ServerMiddleware.Skeleton;
+import lejos.utility.Delay;
 
 public class ActionServer implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotFeedBackListener{
 
@@ -19,6 +20,7 @@ public class ActionServer implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotF
 	private int lastPercentH;
 	private int fbV;
 	private int fbH;
+	private int serverPort;
 	
 	public ActionServer() {
 		simul = CaDSEV3RobotHAL.createInstance(CaDSEV3RobotType.SIMULATION, this, this);
@@ -29,6 +31,7 @@ public class ActionServer implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotF
 		this.lastPercentH=0;
 		this.fbH=0;
 		this.fbV=0;
+		this.serverPort=50003;
 	}
 	
 	@Override
@@ -60,6 +63,7 @@ public class ActionServer implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotF
 					simul.stop_v();
 					simul.giveFeedbackByJSonTo(arg0);
 				}
+				 //Delay.msDelay(100);
 			}
 			if(state.equals("horizontal")) {
 				System.out.println("horizontal: ");
@@ -68,6 +72,7 @@ public class ActionServer implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotF
 					simul.stop_h();
 					simul.giveFeedbackByJSonTo(arg0);
 				}
+				//Delay.msDelay(100);
 			}			
 		}
 		
@@ -105,6 +110,16 @@ public class ActionServer implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotF
 			break;
 		}
 		return this.fbH;
+	}
+	
+	public String getServerAddress() {
+		return "localhost";
+	}
+	public String getServerName() {
+		return "Server1";
+	}
+	public int getServerPort() {
+		return serverPort;
 	}
 	
 	public String getMove() {

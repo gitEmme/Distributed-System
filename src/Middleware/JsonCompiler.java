@@ -56,10 +56,7 @@ public class JsonCompiler {
 		try {
             Object obj = parser.parse(new FileReader(file));
             JSONObject jsonObject = (JSONObject) obj;
-            //System.out.println(jsonObject.size());
             ServiceName = (String) jsonObject.get("ServiceName");
-            //System.out.println(ServiceName);
-            //Function= (String) jsonObject.get("Function");
 			}catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -336,7 +333,10 @@ public class JsonCompiler {
 		marshall.append("message=new JSONObject();\n\t");
 		marshall.append("JSONObject header=new JSONObject();\n\t");
 		marshall.append("header.put(\"serviceName\",\""+p.getServiceName()+"\");\n\t");
-		marshall.append("header.put(\"source\",\"clientStub\");\n\t");
+		marshall.append("header.put(\"sourceName\",\"clientStub\");\n\t");
+		marshall.append("header.put(\"destName\", \"serverStub\");\n\t");
+		marshall.append("header.put(\"stubAddress\",stubAddress);\n\t");
+		marshall.append("header.put(\"stubPort\",stubPort);\n\t");
 		marshall.append("header.put(\"id\",\""+p.getName()+"\"+Integer.toString(counter));\n\t");
 		marshall.append("message.put(\"header\", header);\n\t");
 		marshall.append("JSONObject body=new JSONObject();\n\t");

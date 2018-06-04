@@ -23,7 +23,10 @@ public int moveHorizontal(int integer, String string) {
 	message=new JSONObject();
 	JSONObject header=new JSONObject();
 	header.put("serviceName","MoveAround");
-	header.put("source","clientStub");
+	header.put("sourceName","clientStub");
+	header.put("destName", "serverStub");
+	header.put("stubAddress",stubAddress);
+	header.put("stubPort",stubPort);
 	header.put("id","moveHorizontal"+Integer.toString(counter));
 	message.put("header", header);
 	JSONObject body=new JSONObject();
@@ -55,7 +58,10 @@ public int moveVertical(int integer, String string) {
 	message=new JSONObject();
 	JSONObject header=new JSONObject();
 	header.put("serviceName","MoveAround");
-	header.put("source","clientStub");
+	header.put("sourceName","clientStub");
+	header.put("destName", "serverStub");
+	header.put("stubAddress",stubAddress);
+	header.put("stubPort",stubPort);
 	header.put("id","moveVertical"+Integer.toString(counter));
 	message.put("header", header);
 	JSONObject body=new JSONObject();
