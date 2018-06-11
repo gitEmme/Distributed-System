@@ -1,0 +1,19 @@
+
+
+
+stub message:
+
+HEADER 
+-client name
+-service required name = destination name 
+-function called
+-message id
+
+BODY
+-function name
+-function's return type
+-function's parameters
+
+
+
+skeleton message

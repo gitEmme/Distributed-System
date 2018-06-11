@@ -3,30 +3,23 @@ import Middleware.*;
 import java.util.Iterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import Server.ActionServer1;
 
-import Broker.Coordinator;
-import Server.ActionServer;
-
-public class Skeleton implements Runnable, MoveAround {
+public class CSkeleton1 implements Runnable, OpenClose {
 	private Connection network;
-	ActionServer action=new ActionServer();
+	ActionServer1 action=new ActionServer1();
 	private int port;
-	/* added broker port and address: to decide values!!! Finish register function*/
 	private int brokerPort=50001;
 	private String brokerAddr= new String("localhost");
-	/*till here */
-	public Skeleton(int port) {
+	public CSkeleton1(int port) {
 		this.port=action.getServerPort();
 	}
 	
 public int execute(CProcedure p) {
 		int result=0;
 		switch (p.getName()) {
-			case "moveHorizontal":
-				result= moveHorizontal((int)p.getParam(1).getValue(p.getParam(1).getName()), (String)p.getParam(2).getValue(p.getParam(2).getName()));
-				break;
-			case "moveVertical":
-				result= moveVertical((int)p.getParam(1).getValue(p.getParam(1).getName()), (String)p.getParam(2).getValue(p.getParam(2).getName()));
+			case "grabRelease":
+				result= grabRelease((String)p.getParam(1).getValue(p.getParam(1).getName()));
 				break;
 			}
 			return result;
@@ -39,13 +32,8 @@ public int execute(CProcedure p) {
 		CHeader h= new CHeader();
 		JSONObject header= (JSONObject) received.get("header");
 		h.setProcedureID((String)header.get("messageID"));
-		//h.setStubAddress((String)header.get("stubAddress"));
-		//h.setStubPort((Integer)header.get("stubPort"));
-		//h.setServiceName((String)header.get("serviceName"));
 		h.setSourceName((String) header.get("sourceName"));
-		/*addeddestName*/
-		h.setDestName((String) header.get("destName"));
-		/*till here*/
+		h.setStubAddress((String)header.get("destName"));
 		env.setHeader(h);
 		JSONObject body=(JSONObject) received.get("body");
 		String methodName=(String) body.get("methodName");
@@ -67,46 +55,36 @@ public int execute(CProcedure p) {
 		}
 
 	public void run() {
-		registerService();
-		while(true) {
-			CEnvelope envelope=unmarshall();
-			CHeader head=envelope.getHeader();
-			CProcedure invoked=envelope.getProcedure();
-			int p=execute(invoked);
-			System.out.println("executed!");
-			/*modify in a way to send message back to the broker*/
-			//int stubPort=head.getStubPort();
-			//String stubAddr=head.getStubAddress();
-			network=new Connection();
-			JSONObject body=new JSONObject();
-			JSONArray params=new JSONArray();
-			JSONObject header= new JSONObject();
-			JSONObject env= new JSONObject();
-			header.put("sourceName",head.getDestName());
-			header.put("destName",head.getSourceName());
-			header.put("messageID", head.getProcedureID());
-			body.put("methodName", "answerBack");
-			body.put("parameters", params);
-			body.put("returnType", invoked.getReturnType());
-			env.put("header", header);
-			env.put("body", body);
-			env.put("result", p);
-			network.sendTo(env, brokerAddr, brokerPort);
+	registerService();
+	while(true) {
+		CEnvelope envelope=unmarshall();
+		CHeader head=envelope.getHeader();
+		CProcedure invoked=envelope.getProcedure();
+		int p=execute(invoked);
+		System.out.println("executed!");
+		network=new Connection();
+		JSONObject body=new JSONObject();
+		JSONArray params=new JSONArray();
+		JSONObject header= new JSONObject();
+		JSONObject env= new JSONObject();
+		header.put("sourceName",head.getDestName());
+		header.put("destName",head.getSourceName());
+		header.put("messageID", head.getProcedureID());
+		body.put("methodName", "answerBack");
+		body.put("parameters", params);
+		body.put("returnType", invoked.getReturnType());
+		env.put("header", header);
+		env.put("body", body);
+		env.put("result", p);
+		network.sendTo(env, brokerAddr, brokerPort);
 		}
 	}
 
-	public int moveHorizontal(int integer, String string) {
-		int p = action.moveHorizontal(integer, string);
+	public int grabRelease(String movement) {
+		int p = action.grabRelease(movement);
 		return p;
 	}
 
-	public int moveVertical(int integer, String string) {
-		int p = action.moveVertical(integer, string);
-		return p;
-	}
-
-	
-	/*new added part */
 	public void registerService() {
 		network=new Connection();
 		JSONObject env=new JSONObject();
@@ -139,13 +117,9 @@ public int execute(CProcedure p) {
 		env.put("body", body);
 		env.put("result", result);
 		network.sendTo(env, brokerAddr, brokerPort);
-		
-	}
-	
-	/*till here*/
-	
+		}
 	public static void main(String[] args) {
-		Skeleton sk= new Skeleton(50003);
+		CSkeleton1 sk= new CSkeleton1(50005);
 		Thread s = new Thread(sk);
 		s.start();
 		}

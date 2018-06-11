@@ -3,7 +3,7 @@ package Middleware.ClientMiddleware;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import Middleware.*;
-public class CStub implements MoveAround {
+public class CStub1 implements OpenClose {
 	private Connection network=new Connection();
 	private JSONObject message;
 	private static int counter=1;
@@ -14,76 +14,28 @@ public class CStub implements MoveAround {
 	private Thread move;
 	private boolean running= false;
 	private int result;
-	public CStub(String clientName,String serviceName) {
+	public CStub1(String clientName,String serviceName) {
 		this.clientName=clientName;
 		this.serviceName=serviceName;
 	}
 	
-public int moveHorizontal(int integer, String string) {
-	move= new Thread("moveHorizontal") {
+public int grabRelease(String movement) {
+	move= new Thread("grabRelease") {
 		public void run() {
 		message=new JSONObject();
 		JSONObject header=new JSONObject();
 		header.put("sourceName",clientName);
 		header.put("destName", serviceName);
-		header.put("messageID","moveHorizontal"+Integer.toString(counter));
+		header.put("messageID","grabRelease"+Integer.toString(counter));
 		message.put("header", header);
 		JSONObject body=new JSONObject();
 		JSONArray params=new JSONArray();
 		JSONObject param1=new JSONObject();
-		param1.put("name",Integer.toString(integer));
+		param1.put("name",movement);
 		param1.put("position","1");
-		param1.put("type","int");
+		param1.put("type","String");
 		params.add(param1);
-		JSONObject param2=new JSONObject();
-		param2.put("name",string);
-		param2.put("position","2");
-		param2.put("type","String");
-		params.add(param2);
-		body.put("methodName","moveHorizontal");
-		body.put("parameters",params);
-		body.put("returnType","int");
-		message.put("body", body);
-		System.out.println(message.toJSONString());
-		counter++;
-		network=new Connection();
-		network.sendTo(message,brokerAddr,brokerPort);
-		JSONObject res= (JSONObject) network.recvObjFrom(50002);
-		result=(int)res.get("result");
-		}
-		};
-	move.start();
-	try {
-		move.join();
-	}
-	catch (InterruptedException e) {
-	e.printStackTrace();
-	}
-	return this.result;
-	}
-
-public int moveVertical(int integer, String string) {
-	move= new Thread("moveVertical") {
-		public void run() {
-		message=new JSONObject();
-		JSONObject header=new JSONObject();
-		header.put("sourceName",clientName);
-		header.put("destName", serviceName);
-		header.put("messageID","moveVertical"+Integer.toString(counter));
-		message.put("header", header);
-		JSONObject body=new JSONObject();
-		JSONArray params=new JSONArray();
-		JSONObject param1=new JSONObject();
-		param1.put("name",Integer.toString(integer));
-		param1.put("position","1");
-		param1.put("type","int");
-		params.add(param1);
-		JSONObject param2=new JSONObject();
-		param2.put("name",string);
-		param2.put("position","2");
-		param2.put("type","String");
-		params.add(param2);
-		body.put("methodName","moveVertical");
+		body.put("methodName","grabRelease");
 		body.put("parameters",params);
 		body.put("returnType","int");
 		message.put("body", body);

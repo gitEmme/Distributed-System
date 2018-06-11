@@ -71,8 +71,8 @@ public class Client implements Runnable{
 	public void run() {
 		// TODO Auto-generated method stub
 		//Stub clientStub = new Stub(50001,"localhost",50002,"localhost");
-		Stub clientStub =new Stub("client1","Server1");
-		clientStub.registerClient();
+		Stub clientStub =new Stub("client1","TestService1");
+		clientStub.registerClient("localhost");
 		new Thread(clientStub).start();
 		boolean exit= false;	
 		sc = new Scanner(System.in);

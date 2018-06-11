@@ -7,12 +7,12 @@ public class Stub implements Runnable,MoveAround {
 	private Connection network=new Connection();
 	private JSONObject message;
 	private static int counter=1;
-	
+	/*
 	private int stubPort=0;
 	private String stubAddress;
 	private int port;
 	private String address;
-	
+	*/
 	private String brokerAddr= new String("localhost");
 	private int brokerPort=50001;
 	private String clientName; //added client name to identify the stub
@@ -20,13 +20,16 @@ public class Stub implements Runnable,MoveAround {
 	private Thread moveH, moveV;
 	private boolean running= false;
 	private int resultV, resultH;
-	private boolean msgArrived=false;
+	private int result;
+	
+	/*
 	public Stub(int port, String address, int stubPort, String stubAddress) {
 		this.port=port;
 		this.address=address;
 		this.stubAddress=stubAddress;
 		this.stubPort=stubPort;
 	}
+	*/
 	/* added constructor */
 	public Stub(String clientName,String serviceName) {
 		this.clientName=clientName;
@@ -66,7 +69,7 @@ public int moveHorizontal(int integer, String string) {
 			network=new Connection();
 			network.sendTo(message,brokerAddr,brokerPort);
 			JSONObject res= (JSONObject) network.recvObjFrom(50002);
-			resultH=(int)res.get("result");
+			result=(int)res.get("result");
 		}
 	};
 	moveH.start();
@@ -76,7 +79,7 @@ public int moveHorizontal(int integer, String string) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
-	return this.resultH;
+	return this.result;
 	
 	}
 
@@ -113,7 +116,7 @@ public int moveVertical(int integer, String string) {
 		network=new Connection();
 		network.sendTo(message,brokerAddr,brokerPort);
 		JSONObject res= (JSONObject) network.recvObjFrom(50002);
-		resultV=(int)res.get("result");
+		result=(int)res.get("result");
 		}
 	};
 	moveV.start();
@@ -123,10 +126,10 @@ public int moveVertical(int integer, String string) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
-	return resultV;
+	return result;
 	}
 
-public void registerClient() {
+public void registerClient(String clientAddress) {
 	network=new Connection();
 	JSONObject env=new JSONObject();
 	JSONObject header=new JSONObject();
@@ -143,7 +146,7 @@ public void registerClient() {
 	param1.put("name", clientName);
 	param1.put("type", "String");
 	param1.put("position", Integer.toString(1));
-	param2.put("name", "localhost");
+	param2.put("name", clientAddress);
 	param2.put("type", "String");
 	param2.put("position", Integer.toString(2));
 	param3.put("name", "50002");
@@ -160,13 +163,6 @@ public void registerClient() {
 	network.sendTo(env, brokerAddr, brokerPort);
 }
 
-public synchronized void giveBackResV(int resultV) {
-	this.resultV=resultV;
-}
-
-public synchronized void giveBackResH(int resultH) {
-	this.resultH=resultH;
-}
 
 @Override
 public void run() {

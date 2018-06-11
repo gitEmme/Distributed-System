@@ -1,0 +1,13 @@
+{
+    "ServiceName": "OpenClose",
+    "Function": "ActionServer1",
+    "Functions": [{
+        "name": "grabRelease",
+        "parameters": [{
+            "position": 1,
+            "type": "String",
+            "name": "movement"
+        }],
+        "returnType": "int"
+    }]
+}

@@ -13,14 +13,18 @@ import org.cads.ev3.rmi.generated.cadSRMIInterface.IIDLCaDSEV3RMIMoveVertical;
 import org.cads.ev3.rmi.generated.cadSRMIInterface.IIDLCaDSEV3RMIUltraSonic;
 import org.junit.Test;
 
+import Middleware.ClientMiddleware.CStub;
+import Middleware.ClientMiddleware.CStub1;
 import Middleware.ClientMiddleware.Stub;
 
 public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV3RMIMoveHorizontal, IIDLCaDSEV3RMIMoveVertical, IIDLCaDSEV3RMIUltraSonic, ICaDSRMIConsumer {
     static CaDSRobotGUISwing gui;
     String currentService;
-    Stub clientStub;
+    CStub clientStub;
+    CStub1 clientStub1;
     int currentV=0;
     int currentH=0;
+    int stateGripper=0;
     synchronized public void waithere() {
         try {
             
@@ -92,8 +96,16 @@ public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV
     public void update(String comboBoxText) {
         System.out.println("Combo Box updated " + comboBoxText);
         this.currentService=comboBoxText;
-        clientStub= new Stub("client1",currentService);
-        clientStub.registerClient();
+        switch( this.currentService) {
+        case "TestService1":
+        	 clientStub= new CStub("client1",currentService);
+        	 clientStub.registerClient("localhost");
+        	 break;
+        case "TestService2":
+        	clientStub1= new CStub1("client1",currentService);
+            clientStub1.registerClient("localhost");
+        }
+        
     }
 
     public int moveVerticalToPercent(int transactionID, int percent) throws Exception {
@@ -146,18 +158,20 @@ public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV
     @Override
     public int closeGripper(int transactionID) throws Exception {
         System.out.println("Close.... TID: " + transactionID);
-        return 0;
+        stateGripper=clientStub1.grabRelease("close");
+        return stateGripper;
     }
 
     @Override
     public int openGripper(int transactionID) throws Exception {
         System.out.println("open.... TID: " + transactionID);
-        return 0;
+        stateGripper=clientStub1.grabRelease("open");
+        return stateGripper;
     }
 
     @Override
     public int isGripperClosed() throws Exception {
-        return 0;
+        return stateGripper;
     }
 
     @Override
