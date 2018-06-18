@@ -6,12 +6,11 @@ import org.cads.ev3.middleware.hal.ICaDSEV3RobotFeedBackListener;
 import org.cads.ev3.middleware.hal.ICaDSEV3RobotStatusListener;
 import org.json.simple.JSONObject;
 
-import Middleware.ServerMiddleware.Skeleton;
 import lejos.utility.Delay;
 
 public class ActionServer implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotFeedBackListener{
 
-	protected CaDSEV3RobotHAL simul;
+	protected CaDSEV3RobotHAL simul=CaDSEV3RobotHAL.createInstance(CaDSEV3RobotType.SIMULATION, this, this);
 	
 	private int percentV;
 	private int percentH;
@@ -20,10 +19,20 @@ public class ActionServer implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotF
 	private int lastPercentH;
 	private int fbV;
 	private int fbH;
-	private int serverPort;
+	private int state=0;
+	private String currentValue;
+	private String nextState;
+	private int serverPortV;
+	private int serverPortH;
+	private int serverPortOC;
+	private int serverPortS;
+	private int id=0;
+	private int idH=0;
 	
-	public ActionServer() {
-		simul = CaDSEV3RobotHAL.createInstance(CaDSEV3RobotType.SIMULATION, this, this);
+	private static final ActionServer server= new ActionServer();
+	
+	private ActionServer() {
+		simul = CaDSEV3RobotHAL.getInstance();
 		this.percentV=0;
 		this.percentH=0;
 		this.move="down";
@@ -31,7 +40,18 @@ public class ActionServer implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotF
 		this.lastPercentH=0;
 		this.fbH=0;
 		this.fbV=0;
-		this.serverPort=50003;
+		this.state=0;
+		this.move=new String("open");
+		this.currentValue=new String("close");
+		this.nextState=new String("close");
+		this.serverPortH=50006;
+		this.serverPortV=50005;
+		this.serverPortOC=50004;
+		this.serverPortS=50007;
+	}
+	
+	public static ActionServer getInstance() {
+		return server;
 	}
 	
 	@Override
@@ -52,74 +72,121 @@ public class ActionServer implements ICaDSEV3RobotStatusListener, ICaDSEV3RobotF
 	@Override
 	public void onStatusMessage(JSONObject arg0) {
 		// TODO Auto-generated method stub
+		//System.out.println(arg0.toJSONString());
 		String state= arg0.get("state").toString();
-		if(arg0.containsKey("percent")) {
+		if(state.equals("vertical")) {
 			String p=(String)arg0.get("percent").toString();
 			int pMove=Integer.parseInt(p);
-			if(state.equals("vertical")) {
-				//System.out.println("vertical: ");
-				//System.out.println(pMove);
-				if((pMove>=percentV&&move.equals("up"))||(pMove<=percentV&&move.equals("down"))){
-					simul.stop_v();
-					simul.giveFeedbackByJSonTo(arg0);
-				}
-				 //Delay.msDelay(100);
+			if((pMove>=percentV&&lastPercentV<=percentV)||(pMove<=percentV&&lastPercentV>percentV)){
+				simul.stop_v();
+				//setChanged();
+				simul.giveFeedbackByJSonTo(arg0);
 			}
-			if(state.equals("horizontal")) {
-				//System.out.println("horizontal: ");
-				//System.out.println(pMove);
-				if((pMove>=percentH&&move.equals("left"))||(pMove<=percentH&&move.equals("right"))){
-					simul.stop_h();
-					simul.giveFeedbackByJSonTo(arg0);
-				}
-				//Delay.msDelay(100);
-			}			
+			 //Delay.msDelay(100);
+		}
+		if(state.equals("horizontal")) {
+			String p=(String)arg0.get("percent").toString();
+			int pMove=Integer.parseInt(p);
+			if((pMove>=percentH&&lastPercentH<=percentH)||(pMove<=percentH&&lastPercentH>percentH)){
+				simul.stop_h();
+				//setChanged();
+				simul.giveFeedbackByJSonTo(arg0);
+			}
+			 //Delay.msDelay(100);
 		}
 		
 	}
 	
-	public int moveVertical(int integer, String string) {
-		this.move=string;
-		switch(string) {
-		case "up" : 
-			this.percentV=Math.min(100,this.percentV+integer);
+	public int moveVertical(int transactionID, int percent) {
+		System.out.println("moveVertical "+ percent);
+		this.id=transactionID;
+		this.percentV=percent;
+		if(lastPercentV<=percent) { 
+			//this.percentV=Math.min(100,percent);
 			simul.moveUp();
 			this.lastPercentV=this.fbV;
-			break;
-		case "down" :
-			this.percentV=Math.max(0,this.percentV-integer);
+		}else {
+			//this.percentV=Math.max(0,percent);
 			simul.moveDown();
 			this.lastPercentV=this.fbV;
-			break;
 		}
 		return this.fbV;
 	}
 
-	public int moveHorizontal(int integer, String string) {
-		this.move=string;
-		switch(string) {
-		case "left" : 
-			this.percentH=Math.min(100,this.lastPercentH+integer);
+	public int moveHorizontal(int transactionID, int percent) {
+		System.out.println("moveHorizontal "+ percent);
+		this.idH=transactionID;
+		this.percentH=percent;
+		if(lastPercentH<=percent) { 
+			//this.percentV=Math.min(100,percent);
 			simul.moveLeft();
 			this.lastPercentH=this.fbH;
-			break;
-		case "right" : 
-			this.percentH=Math.max(0,this.lastPercentH-integer);
+		}else {
+			//this.percentV=Math.max(0,percent);
 			simul.moveRight();
 			this.lastPercentH=this.fbH;
-			break;
 		}
+		
 		return this.fbH;
 	}
+	
+	public int grabRelease(int transactionID,String string) {
+		System.out.println("grabRelease "+ string);
+		this.move=string;
+		switch(string) {
+		case "open" : 
+			this.nextState=new String("open");
+			simul.doOpen();
+			this.state=0;
+			this.currentValue=new String("open");
+			break;
+		case "close" :
+			this.nextState=new String("close");
+			simul.doClose();
+			this.state=1;
+			this.currentValue=new String("close");
+			break;
+		}
+		return this.state;
+	}
+	
+	public int stopMovement(int transactionID) {
+		System.out.println("stopMovement "+ transactionID);
+		simul.stop_v();
+		simul.stop_h();
+		return -1000000000;
+	}
+	
 	
 	public String getServerAddress() {
 		return "localhost";
 	}
-	public String getServerName() {
-		return "TestService1";
+	public String getServerNameV() {
+		return "Robot1";
 	}
-	public int getServerPort() {
-		return serverPort;
+	public String getServerNameOC() {
+		return "Robot1";
+	}
+	public String getServerNameH() {
+		return "Robot1";
+	}
+	public String getServerNameS() {
+		return "Robot1";
+	}
+	
+	public int getServerPortH() {
+		return serverPortH;
+	}
+	
+	public int getServerPortV() {
+		return serverPortV;
+	}
+	
+	public int getServerPortOC() {
+		return serverPortOC;
+	}
+	public int getServerPortS() {
+		return serverPortS;
 	}
 	
 	public String getMove() {

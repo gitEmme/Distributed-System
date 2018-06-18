@@ -4,16 +4,16 @@ import java.io.*;
 import java.net.*;
 
 public class Connection implements Runnable{
-	private String hostName;
-	private int desPort;
-	private InetAddress stubAddr;
-	private int stubPort;
+	//private String hostName;
+	//private int desPort;
+	private InetAddress sourceAddr;
+	//private int stubPort;
 	private boolean running=false;
 	private Thread send,receive;
 	private Object msg;
 	public Connection() {
 	}
-public void sendTo(Object msg, String hostName, int desPort){ 
+public void sendTo(final Object msg, final String hostName, final int desPort){ 
 	send=new Thread("sending-Thread") {
 		public void run() {
 			try{
@@ -40,7 +40,7 @@ public void sendTo(Object msg, String hostName, int desPort){
 		};
 	};
 	send.start();
-		}
+	}
 /*
 	public Object recvObjFrom(int desPort)  {
 		receive=new Thread("receiving-Thread") {
@@ -76,13 +76,18 @@ public void sendTo(Object msg, String hostName, int desPort){
 		return msg;
 	}
 	*/
-public Object recvObjFrom(int desPort)  {
+public Object recvObjFrom(int desPort, boolean timeout)  {
 	try{
 	  DatagramSocket dSock=new DatagramSocket(desPort);
+	  if(timeout) {
+		  dSock.setSoTimeout(8000);	//8 seconds timeout
+	  }else {
+		  dSock.setSoTimeout(0);
+	  }
 	  byte[] recvBuf = new byte[5000];
 	  DatagramPacket packet = new DatagramPacket(recvBuf,recvBuf.length);
 	  dSock.receive(packet);
-	  this.stubAddr=packet.getAddress();
+	  this.sourceAddr=packet.getAddress();
 	  int byteCount = packet.getLength();
 	  //this.senderAddr= packet.getAddress();
 	  ByteArrayInputStream byteStream = new
@@ -93,20 +98,19 @@ public Object recvObjFrom(int desPort)  {
 	  is.close();
 	  dSock.close();
 	  return(o);
-	    }
-	    catch (IOException e)
-	    {
+	}catch (IOException e){
 	      System.err.println("Exception:  " + e);
 	      e.printStackTrace();
-	    }
-	    catch (ClassNotFoundException e)
-	    { e.printStackTrace(); }
-	    return(null);  }
+	}catch (ClassNotFoundException e){
+		e.printStackTrace(); 
+	}
+	return(null);  }
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
 		running=true;
 	}
+	/*
 	public int getstubPort() {
 		return stubPort;
 	}
@@ -119,4 +123,5 @@ public Object recvObjFrom(int desPort)  {
 	public void setstubAddr(InetAddress sourceAddr) {
 		this.stubAddr = sourceAddr;
 	}
+	*/
 }

@@ -3,23 +3,33 @@ import Middleware.*;
 import java.util.Iterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import Server.ActionServer1;
+import Server.ActionServer;
 
-public class CSkeleton1 implements Runnable, OpenClose {
+public class CSkeletonS implements Runnable, StopMovement {
 	private Connection network;
-	ActionServer1 action=new ActionServer1();
+	ActionServer action=ActionServer.getInstance();
 	private int port;
 	private int brokerPort=50001;
 	private String brokerAddr= new String("localhost");
-	public CSkeleton1(int port) {
-		this.port=action.getServerPort();
+
+	private String serverName= new String();
+
+	private String serverIP= new String();
+
+	public CSkeletonS() {
+		this.port=action.getServerPortS();
 	}
 	
-public int execute(CProcedure p) {
+public CSkeletonS(String serverName,String serverIP) {
+		this.port=action.getServerPortS();
+		this.serverName=serverName;
+		this.serverIP=serverIP;
+		}
+	public int execute(CProcedure p) {
 		int result=0;
 		switch (p.getName()) {
-			case "grabRelease":
-				result= grabRelease((String)p.getParam(1).getValue(p.getParam(1).getName()));
+			case "stopMovement":
+				result= stopMovement((int)p.getParam(1).getValue(p.getParam(1).getName()));
 				break;
 			}
 			return result;
@@ -27,13 +37,13 @@ public int execute(CProcedure p) {
 
 	public CEnvelope unmarshall() {
 		network=new Connection();
-		JSONObject received=(JSONObject) network.recvObjFrom(this.port);
+		JSONObject received=(JSONObject) network.recvObjFrom(this.port,false);
 		CEnvelope env= new CEnvelope();
 		CHeader h= new CHeader();
 		JSONObject header= (JSONObject) received.get("header");
-		h.setProcedureID((String)header.get("messageID"));
+		h.setMessageID((String)header.get("messageID"));
 		h.setSourceName((String) header.get("sourceName"));
-		h.setStubAddress((String)header.get("destName"));
+		h.setDestName((String)header.get("destName"));
 		env.setHeader(h);
 		JSONObject body=(JSONObject) received.get("body");
 		String methodName=(String) body.get("methodName");
@@ -61,7 +71,6 @@ public int execute(CProcedure p) {
 		CHeader head=envelope.getHeader();
 		CProcedure invoked=envelope.getProcedure();
 		int p=execute(invoked);
-		System.out.println("executed!");
 		network=new Connection();
 		JSONObject body=new JSONObject();
 		JSONArray params=new JSONArray();
@@ -69,8 +78,8 @@ public int execute(CProcedure p) {
 		JSONObject env= new JSONObject();
 		header.put("sourceName",head.getDestName());
 		header.put("destName",head.getSourceName());
-		header.put("messageID", head.getProcedureID());
-		body.put("methodName", "answerBack");
+		header.put("messageID", head.getMessageID());
+		body.put("methodName", invoked.getName());
 		body.put("parameters", params);
 		body.put("returnType", invoked.getReturnType());
 		env.put("header", header);
@@ -80,8 +89,8 @@ public int execute(CProcedure p) {
 		}
 	}
 
-	public int grabRelease(String movement) {
-		int p = action.grabRelease(movement);
+	public int stopMovement(int transactionID) {
+		int p = action.stopMovement(transactionID);
 		return p;
 	}
 
@@ -95,17 +104,17 @@ public int execute(CProcedure p) {
 		JSONObject param1=new JSONObject();
 		JSONObject param2=new JSONObject();
 		JSONObject param3=new JSONObject();
-		header.put("sourceName", action.getServerName());
+		header.put("sourceName", action.getServerNameS());
 		header.put("destName", "broker");
 		header.put("messageID","registerMe");
-		body.put("methodName", "registerService");
-		param1.put("name", action.getServerName());
+		body.put("methodName", "registerServer");
+		param1.put("name", action.getServerNameS());
 		param1.put("type", "String");
 		param1.put("position", Integer.toString(1));
 		param2.put("name", action.getServerAddress());
 		param2.put("type", "String");
 		param2.put("position", Integer.toString(2));
-		param3.put("name", Integer.toString(action.getServerPort()));
+		param3.put("name", Integer.toString(action.getServerPortS()));
 		param3.put("type", "String");
 		param3.put("position", Integer.toString(3));
 		params.add(param1);
@@ -116,10 +125,24 @@ public int execute(CProcedure p) {
 		env.put("header", header);
 		env.put("body", body);
 		env.put("result", result);
-		network.sendTo(env, brokerAddr, brokerPort);
+		int tries=5;
+		boolean receivedResponse= false;
+		boolean sent=false;
+		do{
+			network.sendTo(env, brokerAddr, brokerPort);
+			sent = true;
+			JSONObject received=(JSONObject) network.recvObjFrom(action.getServerPortS(),false);
+			if (received!=null) {
+			receivedResponse=true;
+				System.out.println(received.toJSONString());
+			}else{
+			tries --;
+				System.out.println("Timed out: "+  tries + " tries left");
+				}
+			}while(((!receivedResponse)&& tries!= 0) && (!sent));
 		}
 	public static void main(String[] args) {
-		CSkeleton1 sk= new CSkeleton1(50005);
+		CSkeletonS sk= new CSkeletonS();
 		Thread s = new Thread(sk);
 		s.start();
 		}

@@ -1,14 +1,9 @@
 {
-    "ServiceName": "OpenClose",
+    "ServiceName": "StopMovement",
     "Function": "ActionServer",
     "Functions": [{
-        "name": "grabRelease",
+        "name": "stopMovement",
         "parameters": [{
-            "position": 2,
-            "type": "String",
-            "name": "movement"
-        },
-        {
             "position": 1,
             "type": "int",
             "name": "transactionID"

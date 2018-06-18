@@ -1,5 +1,5 @@
 package Middleware;
 
 public interface OpenClose{
-	int grabRelease(String movement);
+	int grabRelease(int transactionID, String movement);
 	}

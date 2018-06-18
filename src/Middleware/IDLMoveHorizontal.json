@@ -1,17 +1,16 @@
 {
-    "ServiceName": "OpenClose",
+    "ServiceName": "MoveHorizontal",
     "Function": "ActionServer",
     "Functions": [{
-        "name": "grabRelease",
+        "name": "moveHorizontal",
         "parameters": [{
-            "position": 2,
-            "type": "String",
-            "name": "movement"
-        },
-        {
             "position": 1,
             "type": "int",
             "name": "transactionID"
+        }, {
+            "position": 2,
+            "type": "int",
+            "name": "percent"
         }],
         "returnType": "int"
     }]

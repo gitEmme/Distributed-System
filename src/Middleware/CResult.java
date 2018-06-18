@@ -1,19 +1,27 @@
 package Middleware;
 
 public class CResult {
-	private String procedureID=new String();
-	private int result=0;
-	public String getProcedureID() {
-		return procedureID;
+	private int messageID=0;
+	private int resultV=0;
+	private int resultH=0;
+	
+	public int getResultV() {
+		return resultV;
 	}
-	public void setProcedureID(String procedureID) {
-		this.procedureID = procedureID;
+	public void setResultV(int result) {
+		this.resultV = result;
 	}
-	public int getResult() {
-		return result;
+	public int getMessageID() {
+		return messageID;
 	}
-	public void setResult(int result) {
-		this.result = result;
+	public void setMessageID(int messageID) {
+		this.messageID = messageID;
+	}
+	public int getResultH() {
+		return resultH;
+	}
+	public void setResultH(int resultH) {
+		this.resultH = resultH;
 	}
 
 }
