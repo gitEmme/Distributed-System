@@ -20,10 +20,11 @@ public class CSkeletonS implements Runnable, StopMovement {
 		this.port=action.getServerPortS();
 	}
 	
-public CSkeletonS(String serverName,String serverIP) {
+public CSkeletonS(String serverName,String serverIP,String brokerAddr) {
 		this.port=action.getServerPortS();
 		this.serverName=serverName;
 		this.serverIP=serverIP;
+		this.brokerAddr=brokerAddr;
 		}
 	public int execute(CProcedure p) {
 		int result=0;
@@ -85,7 +86,8 @@ public CSkeletonS(String serverName,String serverIP) {
 		env.put("header", header);
 		env.put("body", body);
 		env.put("result", p);
-		network.sendTo(env, brokerAddr, brokerPort);
+		//network.sendTo(env, brokerAddr, brokerPort);
+		System.out.println("STOPPED RESULT"+env.toJSONString());
 		}
 	}
 
@@ -104,14 +106,14 @@ public CSkeletonS(String serverName,String serverIP) {
 		JSONObject param1=new JSONObject();
 		JSONObject param2=new JSONObject();
 		JSONObject param3=new JSONObject();
-		header.put("sourceName", action.getServerNameS());
+		header.put("sourceName", this.serverName);
 		header.put("destName", "broker");
 		header.put("messageID","registerMe");
 		body.put("methodName", "registerServer");
-		param1.put("name", action.getServerNameS());
+		param1.put("name", this.serverName);
 		param1.put("type", "String");
 		param1.put("position", Integer.toString(1));
-		param2.put("name", action.getServerAddress());
+		param2.put("name", this.serverIP);
 		param2.put("type", "String");
 		param2.put("position", Integer.toString(2));
 		param3.put("name", Integer.toString(action.getServerPortS()));

@@ -2,6 +2,7 @@ package Middleware;
 
 import java.io.*;
 import java.net.*;
+import java.util.HashMap;
 
 public class Connection implements Runnable{
 	//private String hostName;
@@ -11,7 +12,10 @@ public class Connection implements Runnable{
 	private boolean running=false;
 	private Thread send,receive;
 	private Object msg;
+	private static HashMap<Integer,DatagramSocket> mappaSock=new HashMap();
+	
 	public Connection() {
+		
 	}
 public void sendTo(final Object msg, final String hostName, final int desPort){ 
 	send=new Thread("sending-Thread") {
@@ -41,46 +45,22 @@ public void sendTo(final Object msg, final String hostName, final int desPort){
 	};
 	send.start();
 	}
-/*
-	public Object recvObjFrom(int desPort)  {
-		receive=new Thread("receiving-Thread") {
-			public void run() {
-				//while(running) {
-					try{
-						  DatagramSocket dSock=new DatagramSocket(desPort);
-						  byte[] recvBuf = new byte[5000];
-						  DatagramPacket packet = new DatagramPacket(recvBuf,recvBuf.length);
-						  dSock.receive(packet);
-						  setSourceAddr(packet.getAddress());
-						  setSourcePort(packet.getPort());
-						  int byteCount = packet.getLength();
-						  //this.senderAddr= packet.getAddress();
-						  ByteArrayInputStream byteStream = new
-						                              ByteArrayInputStream(recvBuf);
-						  ObjectInputStream is = new
-						       ObjectInputStream(new BufferedInputStream(byteStream));
-						  Object o = is.readObject();
-						  is.close();
-						  dSock.close();
-						  msg=o;
-					}catch (IOException e){
-						System.err.println("Exception:  " + e);
-						e.printStackTrace();
-				    }catch (ClassNotFoundException e){
-				    	e.printStackTrace(); 
-						    }
-				//}
-				};
-		};
-		receive.start();
-		return msg;
-	}
-	*/
+
 public Object recvObjFrom(int desPort, boolean timeout)  {
+	DatagramSocket dSock=mappaSock.get(desPort);
+	if(dSock==null) {
+		try {
+			dSock=new DatagramSocket(desPort);
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		mappaSock.put(desPort, dSock);
+	}
 	try{
-	  DatagramSocket dSock=new DatagramSocket(desPort);
+	  //DatagramSocket dSock=new DatagramSocket(desPort);
 	  if(timeout) {
-		  dSock.setSoTimeout(8000);	//8 seconds timeout
+		  dSock.setSoTimeout(1000);	//1 seconds timeout
 	  }else {
 		  dSock.setSoTimeout(0);
 	  }
@@ -90,13 +70,11 @@ public Object recvObjFrom(int desPort, boolean timeout)  {
 	  this.sourceAddr=packet.getAddress();
 	  int byteCount = packet.getLength();
 	  //this.senderAddr= packet.getAddress();
-	  ByteArrayInputStream byteStream = new
-	                              ByteArrayInputStream(recvBuf);
-	  ObjectInputStream is = new
-	       ObjectInputStream(new BufferedInputStream(byteStream));
+	  ByteArrayInputStream byteStream = new ByteArrayInputStream(recvBuf);
+	  ObjectInputStream is = new ObjectInputStream(new BufferedInputStream(byteStream));
 	  Object o = is.readObject();
 	  is.close();
-	  dSock.close();
+	  //dSock.close();
 	  return(o);
 	}catch (IOException e){
 	      System.err.println("Exception:  " + e);
@@ -110,18 +88,5 @@ public Object recvObjFrom(int desPort, boolean timeout)  {
 		// TODO Auto-generated method stub
 		running=true;
 	}
-	/*
-	public int getstubPort() {
-		return stubPort;
-	}
-	public void setstubPort(int sourcePort) {
-		this.stubPort = sourcePort;
-	}
-	public InetAddress getstubAddr() {
-		return stubAddr;
-	}
-	public void setstubAddr(InetAddress sourceAddr) {
-		this.stubAddr = sourceAddr;
-	}
-	*/
+	
 }

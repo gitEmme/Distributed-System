@@ -1,4 +1,4 @@
-package Middleware;
+package JsonParser;
 
 import org.freedesktop.dbus.bin.CreateInterface;
 import org.json.simple.JSONArray;
@@ -6,6 +6,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import Middleware.CParameter;
+import Middleware.CProcedure;
 import Server.ActionServer;
 
 import java.io.BufferedReader;
@@ -283,19 +285,19 @@ public class JsonCompiler {
 		String getServerName=new String();
 		String getServerPort=new String();
 		if(className.equals("CSkeletonH")) {
-			getServerName=new String("getServerNameH()");
+			getServerName=new String("getServerName()");
 			getServerPort=new String("getServerPortH()");
 		}
 		if(className.equals("CSkeletonV")) {
-			getServerName=new String("getServerNameV()");
+			getServerName=new String("getServerName()");
 			getServerPort=new String("getServerPortV()");
 		}
 		if(className.equals("CSkeletonOC")) {
-			getServerName=new String("getServerNameOC()");
+			getServerName=new String("getServerName()");
 			getServerPort=new String("getServerPortOC()");
 		}
 		if(className.equals("CSkeletonS")) {
-			getServerName=new String("getServerNameS()");
+			getServerName=new String("getServerName()");
 			getServerPort=new String("getServerPortS()");
 		}
 		sk.append("private Connection network;\n\t");

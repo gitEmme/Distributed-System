@@ -26,53 +26,56 @@ import Middleware.CResult;
 import Middleware.ClientMiddleware.CStubH;
 import Middleware.ClientMiddleware.CStubOC;
 import Middleware.ClientMiddleware.CStubV;
-import Middleware.ClientMiddleware.Stub;
 
 public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV3RMIMoveHorizontal, IIDLCaDSEV3RMIMoveVertical, IIDLCaDSEV3RMIUltraSonic, ICaDSRMIConsumer {
     static CaDSRobotGUISwing gui;
     String currentService;
-    //CStub clientStub;
-    //CStubOC clientStubOC;
-    //CStubV clientStubV;
-    //CStubH clientStubH;
-    Stub stub;
+    GuiController stub;
     int currentV=0;
     int currentH=0;
     int stateGripper=0;
-    LinkedList<String> availableRobots= new LinkedList();
-    LinkedList<String> currentRobots= new LinkedList();
+    private LinkedList<String> availableRobots= new LinkedList();
+    private LinkedList<String> currentRobots= new LinkedList();
+  	private Timer timer = new Timer();
+    private Thread f,l,r;
     
     synchronized public void waithere() {
-       
+    	while(true) {
     	try {
-    		
             TimeUnit.SECONDS.sleep(1);
-            for(String r: currentRobots) {
-                gui.removeService(r);
-                System.out.println("removed Service. "+r);
-            }
-            currentRobots=availableRobots;
-            TimeUnit.SECONDS.sleep(1);
-            for(String r: availableRobots) {
-                gui.addService(r);
-                System.out.println("added Service. "+r);
-            }
+            //for(String r: currentRobots) {
+            	//gui.removeService(r);
+            		//currentRobots.remove(r);
+                //System.out.println("removed Service. "+r);
+            	currentRobots=availableRobots;
+            	//}
             
+            TimeUnit.SECONDS.sleep(1);
+            //for(String r: availableRobots) {
+            	//gui.addService(r);
+                //System.out.println("added Service. "+r);
+            	//}
+           
+           //System.out.println("CCCCCCCCCCCCCCCCCCCC"+currentRobots.toString());
+          
             
             
             this.wait();
+    	
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        
+    	}
     }
 
     private class SwingGUI implements Runnable {
         CaDSEVGUISwingTest c;
+        
 
         public SwingGUI(CaDSEVGUISwingTest _c) {
             c = _c;
-            stub=new Stub("client1","localhost",50002);
+            stub=new GuiController("client1","192.168.0.105",50002);
+        	
         }
         
 
@@ -82,8 +85,11 @@ public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV
         	try {
                 gui = new CaDSRobotGUISwing(c, c, c, c, c);
             	stub.registerClient();
-            	Timer timer = new Timer();
-                timer.scheduleAtFixedRate(new RefreshRobotList(), 0, 10000);
+            	getList();
+            	refresh();
+                feedBack();
+                //timer.scheduleAtFixedRate(new RefreshRobotList(), 0, 2000);
+            	//timer.schedule(new RefreshRobotList(), 0, 2000);
                 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -91,24 +97,118 @@ public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV
         }
     }
     
+    public void feedBack() {
+    	f=new Thread() {
+    		public void run() {
+    			while(true) {
+    				System.out.println("FEEDBACK!");  
+    				if(currentService!=null) {
+		    	        CResult fb=stub.getResults(currentService);
+		    	        System.out.println(fb.getResultH()+"  "+fb.getResultV());
+		    	        gui.setHorizontalProgressbar(fb.getResultH());
+		    	        gui.setVerticalProgressbar(fb.getResultV());
+    				}
+	    	        try {
+	    	        	Thread.sleep(500);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+    			}
+    		};
+    	};
+    	f.start();
+    }
+    
+    public void getList() {
+    	l=new Thread() {
+    		public void run() {
+    			while(true) {
+	    			System.out.println("ROBOOOOT!");      
+	    	        availableRobots=stub.getRobotList();
+	    	        //System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAA"+availableRobots.toString());
+	    	        try {
+	    	        	Thread.sleep(3000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+	    			}
+    		};
+    	};
+    	l.start();
+    }
+    
+    public void refresh() {
+    	r=new Thread() {
+    		public void run() {
+    			try {
+					TimeUnit.SECONDS.sleep(1);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                for(String r: currentRobots) {
+                	gui.removeService(r);
+                		//currentRobots.remove(r);
+                    //System.out.println("removed Service. "+r);
+                	currentRobots=availableRobots;
+                	}
+                
+                try {
+					TimeUnit.SECONDS.sleep(1);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                for(String r: availableRobots) {
+                	gui.addService(r);
+                    //System.out.println("added Service. "+r);
+                	}
+    		while(true) {
+    			try {
+					TimeUnit.SECONDS.sleep(5);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                for(String r: currentRobots) {
+                	gui.removeService(r);
+                		//currentRobots.remove(r);
+                    //System.out.println("removed Service. "+r);
+                	currentRobots=availableRobots;
+                	}
+                
+                try {
+					TimeUnit.SECONDS.sleep(1);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                for(String r: availableRobots) {
+                	gui.addService(r);
+                    //System.out.println("added Service. "+r);
+                	}
+               
+               //System.out.println("CCCCCCCCCCCCCCCCCCCC"+currentRobots.toString());
+	    			}
+    		};
+    	};
+    	r.start();
+    }
+    
+  /*  
     private class RefreshRobotList extends TimerTask{
         
         private void getListRobots() {
-               
+        System.out.println("FEEEEEEDBACK!");      
          availableRobots=stub.getRobotList();
          System.out.println(availableRobots.toString());
-         CResult fb=stub.getResults();
+         CResult fb=stub.getResults(currentService);
          gui.setHorizontalProgressbar(fb.getResultH());
          gui.setVerticalProgressbar(fb.getResultV());
-         /*try {
-                availableRobots=stub.getRobotList();
-                   //assuming it takes 10 secs to complete the task
-                   Thread.sleep(10000);
-               } catch (InterruptedException e) {
-                   e.printStackTrace();
-               }*/
            }
-        
+       
      @Override
      public void run() {
       // TODO Auto-generated method stub
@@ -116,6 +216,7 @@ public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV
      }
         
        }
+        */
 
     @Test
     public void test() {
@@ -142,7 +243,7 @@ public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV
 
     @Override
     public void update(String comboBoxText) {
-        System.out.println("Combo Box updated " + comboBoxText);
+        //System.out.println("Combo Box updated " + comboBoxText);
         this.currentService=comboBoxText;
         stub.setCurrentServer(currentService);     
         
@@ -156,7 +257,7 @@ public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV
 
     
     public void requestResult() {
-    	stub.getResults();
+    	stub.getResults(currentService);
     }
     
     @Override

@@ -1,4 +1,4 @@
-package Middleware.ClientMiddleware;
+package cads.test.junit.gui;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -7,7 +7,10 @@ import java.util.LinkedList;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import Middleware.*;
-public class Stub implements Runnable{
+import Middleware.ClientMiddleware.CStubH;
+import Middleware.ClientMiddleware.CStubOC;
+import Middleware.ClientMiddleware.CStubV;
+public class GuiController implements Runnable{
 	private Connection network=new Connection();
 	private JSONObject message;
 	private CStubH cH;
@@ -18,6 +21,7 @@ public class Stub implements Runnable{
 	private String serverName;
 	private int clientPort=50002;
 	private int  clientPortRes=50012;
+	private int clientRobPort=50020;
 	private boolean isrunning=false;
 	private String brokerAddr= new String("localhost");
 	private int brokerPort=50001;
@@ -29,15 +33,16 @@ public class Stub implements Runnable{
 	private int currentH=0;
 	private int currentV=0;
 	private Thread h,v,oc;
+	private int countExc=0;
 	
 	
-	public Stub(String clientName,String clientAddr) {
+	public GuiController(String clientName,String clientAddr) {
 		this.clientName=clientName;
 		this.clientAddr=clientAddr;
 		
 	}
 	
-	public Stub(String clientName,String clientAddr, int clientPort) {
+	public GuiController(String clientName,String clientAddr, int clientPort) {
 		this.clientName=clientName;
 		this.clientAddr=clientAddr;
 		this.clientPort=clientPort;
@@ -47,9 +52,9 @@ public class Stub implements Runnable{
 	public int moveHorizontal(final int transactionID, final int percent) throws InterruptedException {
 		h=new Thread("sending-Thread") {
 			public void run() {
-		cH=new CStubH(Stub.this.clientName,Stub.this.serverName);
-		Stub.this.result=cH.moveHorizontal(transactionID, percent);
-		try {
+		cH=new CStubH(GuiController.this.clientName,GuiController.this.serverName);
+		GuiController.this.result=cH.moveHorizontal(transactionID, percent);
+		/*try {
 			Thread.sleep(20000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -58,6 +63,7 @@ public class Stub implements Runnable{
 		if(!responses.contains(transactionID)) {
 			Stub.this.result=cH.moveHorizontal(transactionID, percent);
 		}
+		*/
 			};
 		};
 		h.start();
@@ -68,8 +74,9 @@ public class Stub implements Runnable{
 	public int moveVertical(final int transactionID, final int percent) throws InterruptedException {
 		v=new Thread("sending-Thread") {
 			public void run() {
-		cV=new CStubV(Stub.this.clientName,Stub.this.serverName);
+		cV=new CStubV(GuiController.this.clientName,GuiController.this.serverName);
 		result=cV.moveVertical(transactionID, percent);
+		/*
 		try {
 			Thread.sleep(20000);
 		} catch (InterruptedException e) {
@@ -79,6 +86,7 @@ public class Stub implements Runnable{
 		if(!responses.contains(transactionID)) {
 			result=cV.moveVertical(transactionID, percent);
 		}
+		*/
 			};
 		};
 		v.start();
@@ -88,8 +96,9 @@ public class Stub implements Runnable{
 	public int grabRelease(final int transactionID, final String movement) throws InterruptedException {
 		oc=new Thread("sending-Thread") {
 			public void run() {
-		cOC=new CStubOC(Stub.this.clientName,Stub.this.serverName);
+		cOC=new CStubOC(GuiController.this.clientName,GuiController.this.serverName);
 		result=cOC.grabRelease(transactionID, movement);
+		/*
 		try {
 			Thread.sleep(20000);
 		} catch (InterruptedException e) {
@@ -99,6 +108,7 @@ public class Stub implements Runnable{
 		if(!responses.contains(transactionID)) {
 			result=cOC.grabRelease(transactionID, movement);
 		}
+		*/
 			};
 		};
 		oc.start();
@@ -146,7 +156,7 @@ public class Stub implements Runnable{
 		do{
 			network.sendTo(env, brokerAddr, brokerPort);
 			sent = true;
-			JSONObject received=(JSONObject) network.recvObjFrom(clientPort,true);
+			JSONObject received=(JSONObject) network.recvObjFrom(clientPort,false);
 			if (received!=null) {
 				System.out.println(received.toJSONString());
 				receivedResponse=true;
@@ -180,7 +190,7 @@ public class Stub implements Runnable{
 		do{
 			network.sendTo(env, brokerAddr, brokerPort);
 			sent = true;
-			received=(JSONObject) network.recvObjFrom(clientPort,false);
+			received=(JSONObject) network.recvObjFrom(clientRobPort,false);
 			if (received!=null) {
 				System.out.println(received.toJSONString());
 				receivedResponse=true;
@@ -201,17 +211,26 @@ public class Stub implements Runnable{
 		return robotList;
 		}
 	
-	public CResult getResults() {
+/***********************************************************************************************/	
+	// feedback da robot # invia direttamente dal metodo givefeedbackbyjsonto
+	//tieni tempo ultimo feedback al coordinatore cosi sai quando il robot è off e manda risposta cosi il robot sa quando il coordinatore è off 
+	// registra il cliente con la porta del feedback 
+	public CResult getResults(String robotName) {
 		network=new Connection();
 		JSONObject env=new JSONObject();
 		JSONObject header=new JSONObject();
 		JSONObject body=new JSONObject();
 		JSONObject result=new JSONObject();
 		JSONArray params=new JSONArray();
+		JSONObject param1=new JSONObject();
 		header.put("sourceName", this.clientName);
 		header.put("destName", "broker");
 		header.put("messageID","giveMeResults");
 		body.put("methodName", "getResults");
+		param1.put("name", robotName);
+		param1.put("type", "String");
+		param1.put("position", Integer.toString(1));
+		params.add(param1);
 		body.put("parameters", params);
 		body.put("returnType", "Set<String>");
 		env.put("header", header);
@@ -222,61 +241,34 @@ public class Stub implements Runnable{
 		boolean sent=false;
 		JSONObject received;
 		CResult fb= new CResult();
-		do{
+		do{	
 			network.sendTo(env, brokerAddr, brokerPort);
 			sent = true;
-			received=(JSONObject) network.recvObjFrom(clientPortRes,false);
-			if (received!=null) {
+			received=(JSONObject) network.recvObjFrom(clientPortRes,true);
+			if(received==null) {
+				setCountExc(getCountExc() + 1);
+				//tries --;
+				if(countExc==2) {
+					System.out.println("**************Coordinator down!!!!!***************");
+				}
+			}else {
+				setCountExc(0);
 				System.out.println(received.toJSONString());
 				receivedResponse=true;
-			}else{
-				tries --;
-				System.out.println("Timed out:" + Integer.toString(tries) + " tries left");
-				}
+			}
 			}while(((!receivedResponse)&& tries> 0) && (!sent));
 		if(!(received==null)) {
-		JSONArray jResList=(JSONArray) received.get("result");
-		Iterator<JSONObject> resIterator =jResList.iterator();
-		int maxV=0;
-		int maxH=0;
-		while(resIterator.hasNext()) {
-			JSONObject r= resIterator.next();
-			JSONObject head= (JSONObject)r.get("header");
-			JSONObject b=(JSONObject)r.get("body");
-			int value=(Integer)r.get("result");
-			int messageID=Integer.parseInt((String)head.get("messageID"));
-			String mName=(String)b.get("methodName");
-			responses.add(messageID);
-			if(mName.equals("moveVertical")) {
-				if(maxV==0) {
-					maxV=Math.min(maxV, messageID);
-				}else {
-					maxV=Math.max(maxV, messageID);
-				}
-				if(messageID==maxV) {
-					currentV=value;
-				}else {
-					currentV=currentV;
-				}
-			}
-			if(mName.equals("moveHorizontal")) {
-				if(maxH==0) {
-					maxH=Math.min(maxH, messageID);
-				}else {
-					maxH=Math.max(maxH, messageID);
-				}
-				if(messageID==maxH) {
-					currentH=value;
-				}else {
-					currentH=currentH;
-				}
-			}
-			System.out.println(r);
-		}
-		fb.setResultH(currentH);
-		fb.setResultV(currentV);
+		int resV=0;
+		int resH=0;
+		JSONObject feedBack=(JSONObject)received.get("result");
+		resV=Integer.parseInt((String)feedBack.get("vertical"));
+		resH=Integer.parseInt((String)feedBack.get("horizontal"));
+		fb.setResultH(resH);
+		fb.setResultV(resV);
+		//System.out.println(resV+" "+resH);
 		}
 		return fb;
+		
 		}
 
 
@@ -285,5 +277,13 @@ public class Stub implements Runnable{
 		// TODO Auto-generated method stub
 		isrunning=true;
 		
+	}
+
+	public int getCountExc() {
+		return countExc;
+	}
+
+	public void setCountExc(int countExc) {
+		this.countExc = countExc;
 	}
 }

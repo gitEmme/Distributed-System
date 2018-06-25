@@ -50,11 +50,10 @@ public void removeServers(String serviceName) {
 }
 
 //remove a client or a server from all the maps
-public void removeService(String serviceName) {
+public void removeClients(String serviceName) {
 	registry.remove(serviceName);
 	registryPort.remove(serviceName);
 	registryClients.remove(serviceName);
-	registryService.remove(serviceName);
 }
 
 public Set<String> getAvailable(){

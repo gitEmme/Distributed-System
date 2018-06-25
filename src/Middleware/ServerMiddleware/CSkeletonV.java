@@ -20,10 +20,11 @@ public class CSkeletonV implements Runnable, MoveVertical {
 		this.port=action.getServerPortV();
 	}
 	
-public CSkeletonV(String serverName,String serverIP) {
-		this.port=action.getServerPortS();
+public CSkeletonV(String serverName,String serverIP,String brokerAddr) {
+		this.port=action.getServerPortV();
 		this.serverName=serverName;
 		this.serverIP=serverIP;
+		this.brokerAddr=brokerAddr;
 		}
 	public int execute(CProcedure p) {
 		int result=0;
@@ -85,7 +86,7 @@ public CSkeletonV(String serverName,String serverIP) {
 		env.put("header", header);
 		env.put("body", body);
 		env.put("result", p);
-		network.sendTo(env, brokerAddr, brokerPort);
+		//network.sendTo(env, brokerAddr, brokerPort);
 		}
 	}
 
@@ -104,14 +105,14 @@ public CSkeletonV(String serverName,String serverIP) {
 		JSONObject param1=new JSONObject();
 		JSONObject param2=new JSONObject();
 		JSONObject param3=new JSONObject();
-		header.put("sourceName", action.getServerNameV());
+		header.put("sourceName", this.serverName);
 		header.put("destName", "broker");
 		header.put("messageID","registerMe");
 		body.put("methodName", "registerServer");
-		param1.put("name", action.getServerNameV());
+		param1.put("name", this.serverName);
 		param1.put("type", "String");
 		param1.put("position", Integer.toString(1));
-		param2.put("name", action.getServerAddress());
+		param2.put("name", this.serverIP);
 		param2.put("type", "String");
 		param2.put("position", Integer.toString(2));
 		param3.put("name", Integer.toString(action.getServerPortV()));
