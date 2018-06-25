@@ -10,7 +10,7 @@ public class CSkeletonS implements Runnable, StopMovement {
 	ActionServer action=ActionServer.getInstance();
 	private int port;
 	private int brokerPort=50001;
-	private String brokerAddr= new String("localhost");
+	private String brokerAddr;
 
 	private String serverName= new String();
 
@@ -92,7 +92,9 @@ public CSkeletonS(String serverName,String serverIP,String brokerAddr) {
 	}
 
 	public int stopMovement(int transactionID) {
+		action.setStop(true);
 		int p = action.stopMovement(transactionID);
+		
 		return p;
 	}
 

@@ -25,27 +25,27 @@ public class Provider {
 		Thread sV = new Thread(skV);
 		sV.start();
 	
-		Thread.sleep(2000);
+		Thread.sleep(1000);
 		CSkeletonOC skOC= new CSkeletonOC(robotName,server,broker);
 		Thread sOC = new Thread(skOC);
 		sOC.start();
 		
-		Thread.sleep(2000);
+		Thread.sleep(1000);
 		
 		CSkeletonH skH= new CSkeletonH(robotName,server,broker);
 		Thread sH = new Thread(skH);
 		sH.start();
-		Thread.sleep(2000);
+		Thread.sleep(1000);
 		
 		CSkeletonS sST= new CSkeletonS(robotName,server,broker);
 		Thread s = new Thread(sST);
 		s.start();
-		Thread.sleep(2000);
+		Thread.sleep(1000);
 		
 		CSkeletonF sF= new CSkeletonF(robotName,server,broker);
 		Thread sf = new Thread(sF);
 		sf.start();
-		Thread.sleep(2000);
+		Thread.sleep(1000);
 		
 		
 	}

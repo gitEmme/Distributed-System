@@ -23,6 +23,7 @@ public class RobotQueue implements Runnable{
 	private static ConcurrentLinkedQueue<String> clientsAlive= new ConcurrentLinkedQueue<String>();
 	private Connection network=new Connection();
 	private String sorgente;
+	private Thread ck;
 	
 	public void addRobot(String robotName,String robotAddress) {
 		robotQueue.put(robotName, new LinkedList());
@@ -83,12 +84,12 @@ public class RobotQueue implements Runnable{
 					int cID= Integer.parseInt((String)cHead.get("messageID"));
 					System.out.println("Sending stopMovement "+cID);
 					stopMovement(cID, cDest, destAddress,sName);
-					Thread.sleep(1000);
+					//Thread.sleep(1000);
 					if(methodName.equals("moveVertical")) {
-						countV--;
+						countV=0;
 					}
 					if(methodName.equals("moveHorizontal")) {
-						countH--;
+						countH=0;
 					}
 				}
 				System.out.println("Sending msg:   "+firstMsg.toJSONString());
@@ -129,13 +130,6 @@ public class RobotQueue implements Runnable{
 	public void run() {
 		// TODO Auto-generated method stub
 		isRunning=true;
-		while(true) {
-			if(!clientsAlive.contains(this.sorgente)) {
-				stopMovement(123456, lastContactedRobot.get(this.sorgente), robotAddressMap.get(lastContactedRobot.get(this.sorgente)), sorgente);
-			}
-		}
-		
-		
 	}
 	
 	public void addClientAlive(String clientN) {
@@ -149,4 +143,6 @@ public class RobotQueue implements Runnable{
 		return this.lastContactedRobot.get(clientN);
 		
 	}
+	
+	
 }

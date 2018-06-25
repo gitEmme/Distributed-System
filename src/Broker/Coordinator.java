@@ -103,7 +103,7 @@ public class Coordinator implements Runnable {
 			String clientN=clients.nextElement();
 			long lastC=timestampClients.get(clientN);
 			//System.out.println(System.currentTimeMillis() -lastC);
-			if(System.currentTimeMillis() -lastC >= 2000) {
+			if(System.currentTimeMillis() -lastC >= 1500) {
 				
 				registered.removeClients(clientN);
 				//removed CLIENT from registered list
@@ -113,6 +113,7 @@ public class Coordinator implements Runnable {
 				String robAddr=registered.getServiceAddress(robotToStop);
 				//handler.stopMovement(123456,robotToStop , robAddr, clientN);
 				handler.removeDead(clientN);
+				handler.stopMovement(123456, robotToStop, robAddr, clientN);
 				timestampClients.replace(clientN, System.currentTimeMillis());
 			}
 		}

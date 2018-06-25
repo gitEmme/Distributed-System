@@ -35,10 +35,11 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 	private int idH=0;
 	private String brokerAddr;
 	private int brokerPort;
-	private static int idMsg=Integer.MIN_VALUE;
+	//private static int idMsg=Integer.MIN_VALUE;
 	private Connection network;
 	private int countExep;
 	private Thread boh;
+	private boolean stop;
 	
 	private static final ActionServer server= new ActionServer();
 	
@@ -64,6 +65,7 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 		this.brokerPort=50001;
 		this.network= new Connection();
 		this.setCountExep(0);
+		this.stop=false;
 		//giveFood();
 	}
 	
@@ -90,11 +92,15 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 	public void onStatusMessage(JSONObject arg0) {
 		// TODO Auto-generated method stub
 		//System.out.println(arg0.toJSONString());
-		if(countExep==2) {
+		if(countExep==2 ) {
 			simul.stop_h();
 			simul.stop_v();
 			simul.giveFeedbackByJSonTo(arg0);
-		}else {
+		}else if(isStop()) {
+			percentV=fbV;
+			percentH=fbH;
+		}
+		else {
 			String state= arg0.get("state").toString();
 			if(state.equals("vertical")) {
 				String p=(String)arg0.get("percent").toString();
@@ -188,6 +194,7 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 	}
 
 	public int moveHorizontal(int transactionID, int percent) {
+		if(!stop) {
 		System.out.println("moveHorizontal "+ percent);
 		this.idH=transactionID;
 		this.percentH=percent;
@@ -204,7 +211,7 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 			simul.moveRight();
 			this.lastPercentH=this.fbH;
 		}
-		
+		}
 		return this.fbH;
 	}
 	
@@ -230,8 +237,13 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 	
 	public int stopMovement(int transactionID) {
 		System.out.println("stopMovement "+ transactionID);
+		this.stop=true;
+		percentH=fbH;
+		percentV=fbV;
 		simul.stop_v();
 		simul.stop_h();
+		this.stop=false;
+		
 		return -1000000000;
 	}
 	
@@ -304,6 +316,14 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 
 	public void setCountExep(int countExep) {
 		this.countExep = countExep;
+	}
+
+	public boolean isStop() {
+		return stop;
+	}
+
+	public void setStop(boolean stop) {
+		this.stop = stop;
 	}
 
 }
