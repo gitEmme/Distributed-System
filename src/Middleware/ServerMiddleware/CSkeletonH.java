@@ -20,11 +20,12 @@ public class CSkeletonH implements Runnable, MoveHorizontal {
 		this.port=action.getServerPortH();
 	}
 	
-public CSkeletonH(String serverName,String serverIP,String brokerAddr) {
+public CSkeletonH(String serverName,String serverIP,String brokerAddr,int port) {
 		this.port=action.getServerPortH();
 		this.serverName=serverName;
 		this.serverIP=serverIP;
 		this.brokerAddr=brokerAddr;
+		this.port=port;
 		}
 	public int execute(CProcedure p) {
 		int result=0;
@@ -105,6 +106,7 @@ public CSkeletonH(String serverName,String serverIP,String brokerAddr) {
 		JSONObject param1=new JSONObject();
 		JSONObject param2=new JSONObject();
 		JSONObject param3=new JSONObject();
+		JSONObject param4=new JSONObject();
 		header.put("sourceName", this.serverName);
 		header.put("destName", "broker");
 		header.put("messageID","registerMe");
@@ -115,12 +117,16 @@ public CSkeletonH(String serverName,String serverIP,String brokerAddr) {
 		param2.put("name", this.serverIP);
 		param2.put("type", "String");
 		param2.put("position", Integer.toString(2));
-		param3.put("name", Integer.toString(action.getServerPortH()));
-		param3.put("type", "String");
+		param3.put("name", Integer.toString(this.port));
+		param3.put("type", "int");
 		param3.put("position", Integer.toString(3));
+		param4.put("name", "moveHorizontal");
+		param4.put("type", "String");
+		param4.put("position", Integer.toString(4));
 		params.add(param1);
 		params.add(param2);
 		params.add(param3);
+		params.add(param4);
 		body.put("parameters", params);
 		body.put("returnType", "String");
 		env.put("header", header);
@@ -132,7 +138,7 @@ public CSkeletonH(String serverName,String serverIP,String brokerAddr) {
 		do{
 			network.sendTo(env, brokerAddr, brokerPort);
 			sent = true;
-			JSONObject received=(JSONObject) network.recvObjFrom(action.getServerPortH(),false);
+			JSONObject received=(JSONObject) network.recvObjFrom(this.port,false);
 			if (received!=null) {
 			receivedResponse=true;
 				System.out.println(received.toJSONString());
@@ -141,10 +147,5 @@ public CSkeletonH(String serverName,String serverIP,String brokerAddr) {
 				System.out.println("Timed out: "+  tries + " tries left");
 				}
 			}while(((!receivedResponse)&& tries!= 0) && (!sent));
-		}
-	public static void main(String[] args) {
-		CSkeletonH sk= new CSkeletonH();
-		Thread s = new Thread(sk);
-		s.start();
 		}
 	}

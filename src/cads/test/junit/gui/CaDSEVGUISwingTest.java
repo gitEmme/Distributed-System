@@ -74,7 +74,7 @@ public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV
 
         public SwingGUI(CaDSEVGUISwingTest _c) {
             c = _c;
-            stub=new GuiController("client1","192.168.0.105",50002);
+            stub=new GuiController("client1","localhost",50002,"localhost");
         	
         }
         

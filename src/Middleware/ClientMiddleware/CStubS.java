@@ -14,9 +14,10 @@ public class CStubS implements Runnable, StopMovement {
 	private Thread move;
 	private boolean running= false;
 	private int result;
-	public CStubS(String clientName,String serviceName) {
+	public CStubS(String clientName,String serviceName,String brokerAddr) {
 		this.clientName=clientName;
 		this.serviceName=serviceName;
+		this.brokerAddr=brokerAddr;
 	}
 	
 public int stopMovement(final int transactionID) {

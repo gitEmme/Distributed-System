@@ -14,9 +14,10 @@ public class CStubOC implements Runnable, OpenClose {
 	private Thread move;
 	private boolean running= false;
 	private int result;
-	public CStubOC(String clientName,String serviceName) {
+	public CStubOC(String clientName,String serviceName,String brokerAddr) {
 		this.clientName=clientName;
 		this.serviceName=serviceName;
+		this.brokerAddr=brokerAddr;
 	}
 	
 public int grabRelease(final int transactionID, final String movement) {

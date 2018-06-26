@@ -6,9 +6,21 @@ import java.util.Set;
 public class NameService {
 	private HashMap<String,String> registry = new HashMap(); // map name --> ip , all together clients and servers
 	private HashMap<String,Integer> registryPort = new HashMap(); //map name --> port , all together clients and servers
-	private HashMap<String,String> registryService = new HashMap(); //map serverName --> ip
+	private HashMap<String,String> robotAddrMap = new HashMap(); //map serverName --> ip
 	private HashMap<String,String> registryClients = new HashMap(); //map clientName --> ip
+	private HashMap<String,HashMap<String,Integer>> registryServicePort = new HashMap(); //map name --> port , all together clients and servers
 
+	
+private static NameService maps= new NameService();
+	
+private NameService() {
+	
+}
+
+public static NameService getInstance() {
+	return maps;
+}
+	
 public String getServiceAddress(String serviceName) {
 	if(registry.containsKey(serviceName)) {
 		return registry.get(serviceName);
@@ -38,16 +50,17 @@ public void addClient(String clientName, String clientAddress) {
 }
 
 public void addServer(String serviceName, String serviceAddress) {
-	registryService.put(serviceName, serviceAddress);
-	System.out.println(registryService.toString());
+	robotAddrMap.put(serviceName, serviceAddress);
+	System.out.println(robotAddrMap.toString());
 }
 
 //remove just server from its map 
 public void removeServers(String serviceName) {
-	registryService.remove(serviceName);
+	robotAddrMap.remove(serviceName);
 	registry.remove(serviceName);
 	registryPort.remove(serviceName);
-}
+	registryServicePort.remove(serviceName);
+	}
 
 //remove a client or a server from all the maps
 public void removeClients(String serviceName) {
@@ -61,7 +74,7 @@ public Set<String> getAvailable(){
 }
 
 public Set<String> getAvailableRobot(){
-	return registryService.keySet();
+	return robotAddrMap.keySet();
 }
 
 public boolean isServerRegistered(String serviceName) {
@@ -82,6 +95,37 @@ public boolean isClientRegistered(String serviceName) {
 
 public Set<String> getClientList(){
 	return registryClients.keySet();
+}
+
+public HashMap<String,HashMap<String,Integer>> getRegistryServicePort() {
+	return registryServicePort;
+}
+
+public HashMap<String,Integer> getServicePortMap(String robotName){
+	return registryServicePort.get(robotName);
+}
+
+public void setRegistryServicePort(HashMap<String,HashMap<String,Integer>> registryServicePort) {
+	this.registryServicePort = registryServicePort;
+}
+
+public boolean isRegisteredRobotService(String robotName, String serviceName) {
+	if(registryServicePort.containsKey(robotName)) {
+		return registryServicePort.get(robotName).containsKey(serviceName);
+	}else {
+		return false;
+	}
+	
+}
+
+public void addServicePort(String robotName,String serviceName,int port) {
+	if(registryServicePort.containsKey(robotName)) {
+		registryServicePort.get(robotName).put(serviceName, port);
+	}else {
+		HashMap<String,Integer> service=new HashMap();
+		service.put(serviceName, port);
+		registryServicePort.put(robotName,service);
+	}
 }
 
 }

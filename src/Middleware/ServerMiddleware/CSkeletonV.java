@@ -1,6 +1,8 @@
 package Middleware.ServerMiddleware;
 import Middleware.*;
 import java.util.Iterator;
+
+import org.jfree.util.Log;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import Server.ActionServer;
@@ -20,11 +22,12 @@ public class CSkeletonV implements Runnable, MoveVertical {
 		this.port=action.getServerPortV();
 	}
 	
-public CSkeletonV(String serverName,String serverIP,String brokerAddr) {
+public CSkeletonV(String serverName,String serverIP,String brokerAddr,int port) {
 		this.port=action.getServerPortV();
 		this.serverName=serverName;
 		this.serverIP=serverIP;
 		this.brokerAddr=brokerAddr;
+		this.port=port;
 		}
 	public int execute(CProcedure p) {
 		int result=0;
@@ -61,7 +64,7 @@ public CSkeletonV(String serverName,String serverIP,String brokerAddr) {
 			procedure.AddParam(unmPar);
 			}
 		env.setProcedure(procedure);
-		System.out.println(body.toJSONString());
+		//System.out.println(body.toJSONString());
 		return env;
 		}
 
@@ -87,6 +90,12 @@ public CSkeletonV(String serverName,String serverIP,String brokerAddr) {
 		env.put("body", body);
 		env.put("result", p);
 		//network.sendTo(env, brokerAddr, brokerPort);
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		}
 	}
 
@@ -105,6 +114,7 @@ public CSkeletonV(String serverName,String serverIP,String brokerAddr) {
 		JSONObject param1=new JSONObject();
 		JSONObject param2=new JSONObject();
 		JSONObject param3=new JSONObject();
+		JSONObject param4=new JSONObject();
 		header.put("sourceName", this.serverName);
 		header.put("destName", "broker");
 		header.put("messageID","registerMe");
@@ -115,12 +125,16 @@ public CSkeletonV(String serverName,String serverIP,String brokerAddr) {
 		param2.put("name", this.serverIP);
 		param2.put("type", "String");
 		param2.put("position", Integer.toString(2));
-		param3.put("name", Integer.toString(action.getServerPortV()));
-		param3.put("type", "String");
+		param3.put("name", Integer.toString(this.port));
+		param3.put("type", "int");
 		param3.put("position", Integer.toString(3));
+		param4.put("name", "moveVertical");
+		param4.put("type", "String");
+		param4.put("position", Integer.toString(4));
 		params.add(param1);
 		params.add(param2);
 		params.add(param3);
+		params.add(param4);
 		body.put("parameters", params);
 		body.put("returnType", "String");
 		env.put("header", header);
@@ -132,19 +146,17 @@ public CSkeletonV(String serverName,String serverIP,String brokerAddr) {
 		do{
 			network.sendTo(env, brokerAddr, brokerPort);
 			sent = true;
-			JSONObject received=(JSONObject) network.recvObjFrom(action.getServerPortV(),false);
+			JSONObject received=(JSONObject) network.recvObjFrom(this.port,false);
 			if (received!=null) {
 			receivedResponse=true;
-				System.out.println(received.toJSONString());
+				//System.out.println(received.toJSONString());
+			Log.info("Coordinator ALIVE");
 			}else{
 			tries --;
-				System.out.println("Timed out: "+  tries + " tries left");
+				//System.out.println("Timed out: "+  tries + " tries left");
+				Log.info("Coordinator NOT ALIVE");
 				}
 			}while(((!receivedResponse)&& tries!= 0) && (!sent));
 		}
-	public static void main(String[] args) {
-		CSkeletonV sk= new CSkeletonV();
-		Thread s = new Thread(sk);
-		s.start();
-		}
+	
 	}

@@ -24,6 +24,9 @@ public class RobotQueue implements Runnable{
 	private Connection network=new Connection();
 	private String sorgente;
 	private Thread ck;
+	private NameService maps=NameService.getInstance();
+	
+	
 	
 	public void addRobot(String robotName,String robotAddress) {
 		robotQueue.put(robotName, new LinkedList());
@@ -53,6 +56,7 @@ public class RobotQueue implements Runnable{
 		int currentV=0;
 		int currentH=0;
 		LinkedList<JSONObject> robotMsgList=getRobotQueue(robotName);
+		HashMap<String,Integer> registryPort=maps.getServicePortMap(robotName);
 		for(JSONObject m :robotMsgList ) {
 			JSONObject firstMsg= robotMsgList.getFirst();
 			JSONObject testa=(JSONObject) firstMsg.get("header");
@@ -63,21 +67,21 @@ public class RobotQueue implements Runnable{
 				JSONObject body=(JSONObject) firstMsg.get("body");
 				String methodName=(String) body.get("methodName");
 				if(methodName.equals("moveHorizontal")) {
-					destPort=50006;
+					destPort=registryPort.get("moveHorizontal");
 					countH++;
 					countV=0;
 				}
 				if(methodName.equals("moveVertical")) {
-					destPort=50005;
+					destPort=registryPort.get("moveVertical");
 					countV++;
 					countH=0;
 				}
 				if(methodName.equals("grabRelease")) {
-					destPort=50004;
+					destPort=registryPort.get("grabRelease");
 				}
 				
 				//System.out.println("From queue:   "+firstMsg.toJSONString());
-				if(countV>=2 || countH>=2) {
+				if(countV==2 || countH==2) {
 					JSONObject cHead=(JSONObject)firstMsg.get("header");
 					String cDest=(String) cHead.get("destName");
 					String sName=(String) cHead.get("sourceName");
@@ -86,10 +90,10 @@ public class RobotQueue implements Runnable{
 					stopMovement(cID, cDest, destAddress,sName);
 					//Thread.sleep(1000);
 					if(methodName.equals("moveVertical")) {
-						countV=0;
+						countV-=2;
 					}
 					if(methodName.equals("moveHorizontal")) {
-						countH=0;
+						countH-=2;
 					}
 				}
 				System.out.println("Sending msg:   "+firstMsg.toJSONString());

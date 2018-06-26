@@ -3,6 +3,7 @@ package Middleware.ClientMiddleware;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import Middleware.*;
+import cads.test.junit.gui.GuiController;
 public class CStubH implements Runnable, MoveHorizontal {
 	private Connection network=new Connection();
 	private JSONObject message;
@@ -14,9 +15,10 @@ public class CStubH implements Runnable, MoveHorizontal {
 	private Thread move;
 	private boolean running= false;
 	private int result;
-	public CStubH(String clientName,String serviceName) {
+	public CStubH(String clientName,String serviceName,String brokerAddr) {
 		this.clientName=clientName;
 		this.serviceName=serviceName;
+		this.brokerAddr=brokerAddr;
 	}
 	
 public int moveHorizontal(final int transactionID, final int percent) {

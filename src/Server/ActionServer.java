@@ -1,6 +1,7 @@
 package Server;
 
 import java.net.SocketTimeoutException;
+import java.util.logging.Logger;
 
 import org.cads.ev3.middleware.CaDSEV3RobotHAL;
 import org.cads.ev3.middleware.CaDSEV3RobotType;
@@ -13,6 +14,7 @@ import Middleware.Connection;
 import lejos.utility.Delay;
 
 public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaDSEV3RobotFeedBackListener{
+	private static Logger LOG = Logger.getLogger(ActionServer.class.getName());
 
 	protected CaDSEV3RobotHAL simul=CaDSEV3RobotHAL.createInstance(CaDSEV3RobotType.SIMULATION, this, this);
 	
@@ -39,7 +41,7 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 	private Connection network;
 	private int countExep;
 	private Thread boh;
-	private boolean stop;
+	//private boolean stop;
 	
 	private static final ActionServer server= new ActionServer();
 	
@@ -65,7 +67,7 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 		this.brokerPort=50001;
 		this.network= new Connection();
 		this.setCountExep(0);
-		this.stop=false;
+		//this.stop=false;
 		//giveFood();
 	}
 	
@@ -76,36 +78,42 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 	@Override
 	public void giveFeedbackByJSonTo(JSONObject arg0) {
 		// TODO Auto-generated method stub
-		String state= arg0.get("state").toString();
-		if(arg0.containsKey("percent")) {
-			int p=Integer.parseInt((String)arg0.get("percent").toString());
-			if(state.equals("vertical")) {
-				this.fbV=p;
-			}
-			if(state.equals("horizontal")) {
-				this.fbH=p;
+		//System.out.println("GIVE FEEEED"+arg0.toJSONString());
+	/*
+		if(arg0!=null) {
+			String state= arg0.get("state").toString();
+			if(arg0.containsKey("percent")) {
+				int p=Integer.parseInt((String)arg0.get("percent").toString());
+				if(state.equals("vertical")) {
+					this.fbV=p;
+				}
+				if(state.equals("horizontal")) {
+					this.fbH=p;
+				}
 			}
 		}
+		*/
 	}
 
 	@Override
 	public void onStatusMessage(JSONObject arg0) {
 		// TODO Auto-generated method stub
 		//System.out.println(arg0.toJSONString());
-		if(countExep==2 ) {
-			simul.stop_h();
-			simul.stop_v();
-			simul.giveFeedbackByJSonTo(arg0);
-		}else if(isStop()) {
+		//LOG.info("V:"+fbV+" H:"+fbH);
+		if(countExep==1) {
 			percentV=fbV;
 			percentH=fbH;
+			simul.stop_h();
+			simul.stop_v();
+			//simul.giveFeedbackByJSonTo(arg0);
 		}
 		else {
 			String state= arg0.get("state").toString();
 			if(state.equals("vertical")) {
 				String p=(String)arg0.get("percent").toString();
 				int pMove=Integer.parseInt(p);
-				simul.giveFeedbackByJSonTo(arg0);
+				//simul.giveFeedbackByJSonTo(arg0);
+				this.fbV=pMove;
 				if((pMove>=percentV&&lastPercentV<=percentV)||(pMove<=percentV&&lastPercentV>percentV)){
 					simul.stop_v();
 					//setChanged();
@@ -115,7 +123,8 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 			if(state.equals("horizontal")) {
 				String p=(String)arg0.get("percent").toString();
 				int pMove=Integer.parseInt(p);
-				simul.giveFeedbackByJSonTo(arg0);
+				//simul.giveFeedbackByJSonTo(arg0);
+				this.fbH=pMove;
 				if((pMove>=percentH&&lastPercentH<=percentH)||(pMove<=percentH&&lastPercentH>percentH)){
 					simul.stop_h();
 					//setChanged();
@@ -124,57 +133,10 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 			}
 		}
 	}
-	/*
-	public void giveFood() {	
-		boh=new Thread() {
-			public void run() {
-				while(true) {
-				JSONObject jenv=new JSONObject();
-				JSONObject jheader=new JSONObject();
-				JSONObject jbody=new JSONObject();
-				JSONObject jresult=new JSONObject();
-				JSONArray params = new JSONArray();
-				jheader.put("sourceName",getServerName() );
-				jheader.put("destName", "broker" );
-				jheader.put("messageID",Integer.toString(idMsg));
-				jbody.put("methodName", "feedback");
-				jbody.put("parameters", params);
-				jbody.put("returnType", "int");
-				jenv.put("header", jheader);
-				jenv.put("body", jbody);
-				jresult.put("vertical", Integer.toString(fbV));
-				jresult.put("horizontal", Integer.toString(fbH));
-				jenv.put("result", jresult);
-				idMsg++;
-				try {
-					Thread.sleep(200);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				System.out.println(fbV+ " "+ fbH);
-				network.sendTo(jenv, brokerAddr, brokerPort);
-				JSONObject received=(JSONObject)network.recvObjFrom(50021, true);
-				if(received==null) {
-					setCountExep(getCountExep() + 1);
-				}else {
-					setCountExep(0);
-				}
-				if(countExep==2) {
-					simul.stop_h();
-					simul.stop_v();
-				}
-				}
-				
-		};
-		};
-		boh.start();
-		
-	}
-		*/
 	
 	public int moveVertical(int transactionID, int percent) {
-		System.out.println("moveVertical "+ percent);
+		//System.out.println("moveVertical "+ percent);
+		LOG.info("moveVertical "+ percent);
 		this.id=transactionID;
 		this.percentV=percent;
 		if(countExep==2) {
@@ -194,8 +156,8 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 	}
 
 	public int moveHorizontal(int transactionID, int percent) {
-		if(!stop) {
-		System.out.println("moveHorizontal "+ percent);
+		LOG.info("moveHorizontal "+ percent);
+		//System.out.println("moveHorizontal "+ percent);
 		this.idH=transactionID;
 		this.percentH=percent;
 		if(countExep==2) {
@@ -211,12 +173,12 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 			simul.moveRight();
 			this.lastPercentH=this.fbH;
 		}
-		}
 		return this.fbH;
 	}
 	
 	public int grabRelease(int transactionID,String string) {
-		System.out.println("grabRelease "+ string);
+		//System.out.println("grabRelease "+ string);
+		LOG.info("grabRelease "+ string);
 		this.move=string;
 		switch(string) {
 		case "open" : 
@@ -236,13 +198,14 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 	}
 	
 	public int stopMovement(int transactionID) {
-		System.out.println("stopMovement "+ transactionID);
-		this.stop=true;
+		//System.out.println("stopMovement "+ transactionID);
+		LOG.info("stopMovement "+ transactionID);
+		//this.stop=true;
 		percentH=fbH;
 		percentV=fbV;
 		simul.stop_v();
 		simul.stop_h();
-		this.stop=false;
+		//this.stop=false;
 		
 		return -1000000000;
 	}
@@ -317,7 +280,7 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 	public void setCountExep(int countExep) {
 		this.countExep = countExep;
 	}
-
+/*
 	public boolean isStop() {
 		return stop;
 	}
@@ -325,5 +288,5 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 	public void setStop(boolean stop) {
 		this.stop = stop;
 	}
-
+*/
 }

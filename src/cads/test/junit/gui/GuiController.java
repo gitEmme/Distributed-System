@@ -42,17 +42,18 @@ public class GuiController implements Runnable{
 		
 	}
 	
-	public GuiController(String clientName,String clientAddr, int clientPort) {
+	public GuiController(String clientName,String clientAddr, int clientPort,String brokerAddr) {
 		this.clientName=clientName;
 		this.clientAddr=clientAddr;
 		this.clientPort=clientPort;
+		this.brokerAddr=brokerAddr;
 	
 	}
 	
 	public int moveHorizontal(final int transactionID, final int percent) throws InterruptedException {
 		h=new Thread("sending-Thread") {
 			public void run() {
-		cH=new CStubH(GuiController.this.clientName,GuiController.this.serverName);
+		cH=new CStubH(GuiController.this.clientName,GuiController.this.serverName,GuiController.this.brokerAddr=brokerAddr);
 		GuiController.this.result=cH.moveHorizontal(transactionID, percent);
 		/*try {
 			Thread.sleep(20000);
@@ -74,7 +75,7 @@ public class GuiController implements Runnable{
 	public int moveVertical(final int transactionID, final int percent) throws InterruptedException {
 		v=new Thread("sending-Thread") {
 			public void run() {
-		cV=new CStubV(GuiController.this.clientName,GuiController.this.serverName);
+		cV=new CStubV(GuiController.this.clientName,GuiController.this.serverName,GuiController.this.brokerAddr=brokerAddr);
 		result=cV.moveVertical(transactionID, percent);
 		/*
 		try {
@@ -96,7 +97,7 @@ public class GuiController implements Runnable{
 	public int grabRelease(final int transactionID, final String movement) throws InterruptedException {
 		oc=new Thread("sending-Thread") {
 			public void run() {
-		cOC=new CStubOC(GuiController.this.clientName,GuiController.this.serverName);
+		cOC=new CStubOC(GuiController.this.clientName,GuiController.this.serverName,GuiController.this.brokerAddr=brokerAddr);
 		result=cOC.grabRelease(transactionID, movement);
 		/*
 		try {

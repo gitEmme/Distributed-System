@@ -23,14 +23,17 @@ import Middleware.CParameter;
 import Middleware.CProcedure;
 import Middleware.CResult;
 import Middleware.Connection;
+import Server.ActionServer;
+
+//add blocking queues for each send 
 
 
 public class Coordinator implements Runnable {
-	private static Logger log=Logger.getLogger("Coordinator busy");
+	private static Logger LOG = Logger.getLogger(Coordinator.class.getName());
 	private Connection network= new Connection();
 	private int brokerPort=50001;
 	private String brokerAddress;
-	private NameService registered = new NameService();
+	private NameService registered = NameService.getInstance();
 	private LinkedList<JSONObject> responses;
 	private JSONObject received;
 	private ConcurrentHashMap<JSONObject,String> clientMsgMap= new ConcurrentHashMap();
@@ -89,12 +92,15 @@ public class Coordinator implements Runnable {
 		while (robots.hasMoreElements()) {
 			String robotN=robots.nextElement();
 			long lastF=timestampFood.get(robotN);
-			if(System.currentTimeMillis() -lastF >= 3000) {
+			if(System.currentTimeMillis() -lastF >= 8000) {
 				//System.out.println(System.currentTimeMillis() -lastF);
 				registered.removeServers(robotN);
 				//remove its message list
+				//System.out.println("*********** "+robotN+ " IS OFF:DEREGISTERED************");
+				LOG.info("*********** "+robotN+ " IS OFF:DEREGISTERED************");
 				handler.removeRobot(robotN);
 				timestampFood.replace(robotN, System.currentTimeMillis());
+				timestampFood.remove(robotN,timestampFood.get(robotN));
 				////// implements remove robot here !!!!!
 			}
 		}
@@ -107,14 +113,15 @@ public class Coordinator implements Runnable {
 				
 				registered.removeClients(clientN);
 				//removed CLIENT from registered list
-				System.out.println("***********CLIENT "+clientN+" IS OFF:DEREGISTERED************");
+				//System.out.println("***********CLIENT "+clientN+" IS OFF:DEREGISTERED************");
+				LOG.info("***********CLIENT "+clientN+" IS OFF:DEREGISTERED************");
 				////// implements remove robot here !!!!!
 				String robotToStop=handler.getLastContactedRobot(clientN);
 				String robAddr=registered.getServiceAddress(robotToStop);
 				//handler.stopMovement(123456,robotToStop , robAddr, clientN);
 				handler.removeDead(clientN);
 				handler.stopMovement(123456, robotToStop, robAddr, clientN);
-				timestampClients.replace(clientN, System.currentTimeMillis());
+				timestampClients.remove(clientN, timestampClients.get(clientN));
 			}
 		}
 		
@@ -143,14 +150,15 @@ public class Coordinator implements Runnable {
 			}
 		env.setProcedure(procedure);
 		String dest=env.getHeader().getDestName();
-		System.out.println("DESTINATION "+dest);
+		//System.out.println("DESTINATION "+dest);
 		if(dest.equals("broker")) {
 			String result=new String();
 			CProcedure called=env.getProcedure();
 			String method=called.getName();
 			if(method.equals("registerServer")) {
-				result=registerServer(called.getParam(1).getName(),called.getParam(2).getName(),Integer.parseInt(called.getParam(3).getName()));
-				System.out.println("result: "+result);
+				result=registerServer(called.getParam(1).getName(),called.getParam(2).getName(),called.getParam(4).getName(),Integer.parseInt(called.getParam(3).getName()));
+				//System.out.println("result: "+result);
+				LOG.info("result: "+result);
 				
 			}
 			if(method.equals("registerClient")){
@@ -158,7 +166,8 @@ public class Coordinator implements Runnable {
 				
 			}
 			if(method.equals("getServiceList")){
-				//System.out.println("Coordinator received getListRequest from client: ");
+				//System.out.println("client asking robot list ");
+				LOG.info("client asking robot list ");
 				//System.out.println(received.toJSONString());
 				//this.lastClient=System.currentTimeMillis();
 				//timestampClients.put(h.getSourceName(), this.lastClient);
@@ -187,6 +196,9 @@ public class Coordinator implements Runnable {
 				
 			}
 			if(method.equals("feedback")) {
+				//System.out.println("Receiving feedback from robot");
+				LOG.info("Receiving feedback from robot");
+				String robotName=env.getHeader().getSourceName();
 				this.lastFood=System.currentTimeMillis();
 				JSONObject feedBack=(JSONObject)received.get("result");
 				int fbV=Integer.parseInt((String)feedBack.get("vertical"));
@@ -199,7 +211,7 @@ public class Coordinator implements Runnable {
 				}
 				String destAddr=registered.getServiceAddress(destBack);
 				System.out.println("hor "+fbH+" vert "+fbV);
-				network.sendTo(received, destAddr, 50021);
+				network.sendTo(received, destAddr, registered.getServicePortMap(robotName).get("feedback"));
 				CResult food=new CResult();
 				food.setResultH(fbH);
 				food.setResultV(fbV);
@@ -207,7 +219,8 @@ public class Coordinator implements Runnable {
 				
 			}
 			if(method.equals("getResults")) {
-				System.out.println("Coordinator received getResults from client: ");
+				//System.out.println("Client asking feedback: ");
+				LOG.info("Client asking feedback: ");
 				//System.out.println(received.toJSONString());
 				this.lastClient=System.currentTimeMillis();
 				if(!timestampClients.containsKey(h.getSourceName())) {
@@ -271,23 +284,26 @@ public class Coordinator implements Runnable {
 	
 	
 	
-	public String registerServer(String serviceName, String serviceAddress, int servicePort) {
-		if(!registered.isServerRegistered(serviceName)) {
-			registered.addServiceLocation(serviceName, serviceAddress, servicePort);
-			registered.addServer(serviceName, serviceAddress);
+	public String registerServer(String robotName, String serviceAddress,String serviceName, int servicePort) {
+		if(!registered.isRegisteredRobotService(robotName, serviceName)) {
+			registered.addServiceLocation(robotName, serviceAddress, servicePort);
+			registered.addServer(robotName, serviceAddress);
 			JSONObject ack= new JSONObject();
-			ack.put("registrationResult",serviceName+ " registered");
-			handler.addRobot(serviceName, serviceAddress);
+			ack.put("registrationResult",robotName+ " registered");
+			handler.addRobot(robotName, serviceAddress);
 			network.sendTo(ack, serviceAddress, servicePort);
 			//create queue for registered robot
-			
-			return "Service "+serviceName+" registered!";
+			//System.out.println(registered.getAvailableRobot().toString());
+			registered.addServicePort(robotName, serviceName, servicePort);
+			LOG.info("AVAILABLE ROBOTS "+ registered.getAvailableRobot().toString() );
+			return "Robot "+robotName+" Service "+serviceName+" registered on port "+ servicePort;
 		}else {
 			JSONObject ack= new JSONObject();
-			ack.put("registrationResult",serviceName+ " already registered");
+			ack.put("registrationResult",robotName+" "+serviceName+ " already registered on port "+servicePort);
 			network.sendTo(ack, serviceAddress, servicePort);
 			return "Service  "+serviceName+" already registered!";
 		}
+		
 		
 	}
 	
@@ -311,7 +327,7 @@ public class Coordinator implements Runnable {
 	
 	
 	public static void main(String[] args) {
-		String broker=new String("192.168.0.105");
+		String broker=new String("localhost");
 		
 		//String broker= args[0];
 		

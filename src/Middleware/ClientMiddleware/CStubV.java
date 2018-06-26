@@ -14,9 +14,10 @@ public class CStubV implements Runnable, MoveVertical {
 	private Thread move;
 	private boolean running= false;
 	private int result;
-	public CStubV(String clientName,String serviceName) {
+	public CStubV(String clientName,String serviceName,String brokerAddr) {
 		this.clientName=clientName;
 		this.serviceName=serviceName;
+		this.brokerAddr=brokerAddr;
 	}
 	
 public int moveVertical(final int transactionID, final int percent) {
