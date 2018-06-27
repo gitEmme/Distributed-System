@@ -15,7 +15,8 @@ public class CSkeletonOC implements Runnable, OpenClose {
 	private String serverName= new String();
 
 	private String serverIP= new String();
-
+	private Registration reg;
+	
 	public CSkeletonOC() {
 		this.port=action.getServerPortOC();
 	}
@@ -26,6 +27,7 @@ public CSkeletonOC(String serverName,String serverIP,String brokerAddr,int port)
 		this.serverIP=serverIP;
 		this.brokerAddr=brokerAddr;
 		this.port=port;
+		reg= new Registration(this.serverName, this.brokerAddr, this.serverIP);
 		}
 	public int execute(CProcedure p) {
 		int result=0;
@@ -67,7 +69,8 @@ public CSkeletonOC(String serverName,String serverIP,String brokerAddr,int port)
 		}
 
 	public void run() {
-	registerService();
+	reg.registerServer("grabRelease", this.port);
+	//registerService();
 	while(true) {
 		CEnvelope envelope=unmarshall();
 		CHeader head=envelope.getHeader();
@@ -102,6 +105,7 @@ public CSkeletonOC(String serverName,String serverIP,String brokerAddr,int port)
 		return p;
 	}
 
+	/*
 	public void registerService() {
 		network=new Connection();
 		JSONObject env=new JSONObject();
@@ -154,4 +158,5 @@ public CSkeletonOC(String serverName,String serverIP,String brokerAddr,int port)
 				}
 			}while(((!receivedResponse)&& tries!= 0) && (!sent));
 		}
+		*/
 	}

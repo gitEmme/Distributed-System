@@ -8,8 +8,8 @@ public class NameService {
 	private HashMap<String,Integer> registryPort = new HashMap(); //map name --> port , all together clients and servers
 	private HashMap<String,String> robotAddrMap = new HashMap(); //map serverName --> ip
 	private HashMap<String,String> registryClients = new HashMap(); //map clientName --> ip
-	private HashMap<String,HashMap<String,Integer>> registryServicePort = new HashMap(); //map name --> port , all together clients and servers
-
+	private HashMap<String,HashMap<String,Integer>> registryServicePort = new HashMap(); //map robot --> (serviceName --> port)
+	private HashMap<String,HashMap<String,Integer>> registryClientPort = new HashMap();
 	
 private static NameService maps= new NameService();
 	
@@ -63,10 +63,11 @@ public void removeServers(String serviceName) {
 	}
 
 //remove a client or a server from all the maps
-public void removeClients(String serviceName) {
-	registry.remove(serviceName);
-	registryPort.remove(serviceName);
-	registryClients.remove(serviceName);
+public void removeClients(String clientName) {
+	registry.remove(clientName);
+	registryPort.remove(clientName);
+	registryClients.remove(clientName);
+	registryClientPort.remove(clientName);
 }
 
 public Set<String> getAvailable(){
@@ -128,4 +129,32 @@ public void addServicePort(String robotName,String serviceName,int port) {
 	}
 }
 
+public boolean isRegisteredClientService(String clientName, String serviceName) {
+	if(registryClientPort.containsKey(clientName)) {
+		return registryClientPort.get(clientName).containsKey(serviceName);
+	}else {
+		return false;
+	}
+	
+}
+
+public void addClientPort(String clientName,String serviceName,int port) {
+	if(registryClientPort.containsKey(clientName)) {
+		registryClientPort.get(clientName).put(serviceName, port);
+	}else {
+		HashMap<String,Integer> service=new HashMap();
+		service.put(serviceName, port);
+		registryClientPort.put(clientName,service);
+	}
+}
+
+public int getClientPort(String clientName, String serviceName) {
+	int servicePort=0;
+	if(registryClientPort.containsKey(clientName)) {
+		if(registryClientPort.get(clientName).containsKey(serviceName)) {
+			servicePort=registryClientPort.get(clientName).get(serviceName);
+			}
+	}
+	return servicePort;
+	}
 }

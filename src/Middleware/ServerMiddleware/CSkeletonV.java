@@ -17,6 +17,8 @@ public class CSkeletonV implements Runnable, MoveVertical {
 	private String serverName= new String();
 
 	private String serverIP= new String();
+	
+	private Registration reg;
 
 	public CSkeletonV() {
 		this.port=action.getServerPortV();
@@ -28,6 +30,8 @@ public CSkeletonV(String serverName,String serverIP,String brokerAddr,int port) 
 		this.serverIP=serverIP;
 		this.brokerAddr=brokerAddr;
 		this.port=port;
+		reg= new Registration(this.serverName, this.brokerAddr, this.serverIP);
+		
 		}
 	public int execute(CProcedure p) {
 		int result=0;
@@ -69,7 +73,8 @@ public CSkeletonV(String serverName,String serverIP,String brokerAddr,int port) 
 		}
 
 	public void run() {
-	registerService();
+	//registerService();
+	reg.registerServer("moveVertical", this.port);
 	while(true) {
 		CEnvelope envelope=unmarshall();
 		CHeader head=envelope.getHeader();
@@ -104,7 +109,11 @@ public CSkeletonV(String serverName,String serverIP,String brokerAddr,int port) 
 		return p;
 	}
 
+	/*
 	public void registerService() {
+		Registration reg= new Registration(this.serverName, this.brokerAddr, this.serverIP);
+		reg.registerServer("moveVertical", this.port);
+		
 		network=new Connection();
 		JSONObject env=new JSONObject();
 		JSONObject header=new JSONObject();
@@ -148,9 +157,9 @@ public CSkeletonV(String serverName,String serverIP,String brokerAddr,int port) 
 			sent = true;
 			JSONObject received=(JSONObject) network.recvObjFrom(this.port,false);
 			if (received!=null) {
-			receivedResponse=true;
-				//System.out.println(received.toJSONString());
-			Log.info("Coordinator ALIVE");
+				receivedResponse=true;
+				System.out.println(received.toJSONString());
+				Log.info("Coordinator ALIVE");
 			}else{
 			tries --;
 				//System.out.println("Timed out: "+  tries + " tries left");
@@ -158,5 +167,7 @@ public CSkeletonV(String serverName,String serverIP,String brokerAddr,int port) 
 				}
 			}while(((!receivedResponse)&& tries!= 0) && (!sent));
 		}
+		
+	*/
 	
 	}

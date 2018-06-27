@@ -210,6 +210,18 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 		return -1000000000;
 	}
 	
+	public int stopV(int transactionID) {
+		percentV=fbV;
+		simul.stop_v();
+		return -1000000000;
+	}
+	
+	public int stopH(int transactionID) {
+		percentH=fbH;
+		simul.stop_h();
+		return -1000000000;
+	}
+	
 	/*
 	public String getServerAddress() {
 		return "192.168.0.105";

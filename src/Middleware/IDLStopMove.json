@@ -9,5 +9,23 @@
             "name": "transactionID"
         }],
         "returnType": "int"
+    },
+    {
+        "name": "stopV",
+        "parameters": [{
+            "position": 1,
+            "type": "int",
+            "name": "transactionID"
+        }],
+        "returnType": "int"
+    },
+    {
+        "name": "stopH",
+        "parameters": [{
+            "position": 1,
+            "type": "int",
+            "name": "transactionID"
+        }],
+        "returnType": "int"
     }]
 }

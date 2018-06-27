@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Logger;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -25,7 +26,7 @@ public class RobotQueue implements Runnable{
 	private String sorgente;
 	private Thread ck;
 	private NameService maps=NameService.getInstance();
-	
+	private static Logger LOG = Logger.getLogger(RobotQueue.class.getName());
 	
 	
 	public void addRobot(String robotName,String robotAddress) {
@@ -45,7 +46,7 @@ public class RobotQueue implements Runnable{
 	public void addMessageForRobot(String robotName, JSONObject msg) throws InterruptedException {
 		getRobotQueue(robotName).add(msg);
 		forwardToRobot(robotName);
-		System.out.println("ROBOTNAME    "+robotName);
+		//System.out.println("ROBOTNAME    "+robotName);
 	
 	}
 	
@@ -81,23 +82,33 @@ public class RobotQueue implements Runnable{
 				}
 				
 				//System.out.println("From queue:   "+firstMsg.toJSONString());
-				if(countV==2 || countH==2) {
+				if(countV>=1) {
 					JSONObject cHead=(JSONObject)firstMsg.get("header");
 					String cDest=(String) cHead.get("destName");
 					String sName=(String) cHead.get("sourceName");
 					int cID= Integer.parseInt((String)cHead.get("messageID"));
-					System.out.println("Sending stopMovement "+cID);
-					stopMovement(cID, cDest, destAddress,sName);
+					LOG.info("Sending stopV "+cID);
+					stopV(cID, cDest, destAddress,sName,registryPort.get("stopMovement"));
 					//Thread.sleep(1000);
 					if(methodName.equals("moveVertical")) {
-						countV-=2;
-					}
-					if(methodName.equals("moveHorizontal")) {
-						countH-=2;
+						countV--;
 					}
 				}
-				System.out.println("Sending msg:   "+firstMsg.toJSONString());
-				System.out.println(firstMsg + destAddress + destPort);
+				if(countH>=1) {
+					JSONObject cHead=(JSONObject)firstMsg.get("header");
+					String cDest=(String) cHead.get("destName");
+					String sName=(String) cHead.get("sourceName");
+					int cID= Integer.parseInt((String)cHead.get("messageID"));
+					LOG.info("Sending stopH "+cID);
+					stopH(cID, cDest, destAddress,sName,registryPort.get("stopMovement"));
+					//Thread.sleep(1000);
+					if(methodName.equals("moveHorizontal")) {
+						countH--;
+					}
+				}
+				
+				LOG.info("Sending msg:   "+methodName);
+				//System.out.println(firstMsg + destAddress + destPort);
 				network.sendTo(firstMsg, destAddress, destPort);
 				robotMsgList.removeFirst();	
 				}
@@ -106,7 +117,7 @@ public class RobotQueue implements Runnable{
 			//System.out.println(clientMsgMap.toString());
 		}
 
-	public int stopMovement(int transactionID,String dest,String destAddr,String source) {
+	public int stopMovement(int transactionID,String dest,String destAddr,String source,int port) {
 		JSONObject message=new JSONObject();
 		JSONObject header=new JSONObject();
 		header.put("sourceName",source);
@@ -126,7 +137,55 @@ public class RobotQueue implements Runnable{
 		message.put("body", body);
 		//System.out.println(message.toJSONString());;
 		network=new Connection();
-		network.sendTo(message,destAddr,50007);
+		network.sendTo(message,destAddr,port);
+		return 1;
+		}
+	
+	public int stopV(int transactionID,String dest,String destAddr,String source,int port) {
+		JSONObject message=new JSONObject();
+		JSONObject header=new JSONObject();
+		header.put("sourceName",source);
+		header.put("destName", dest);
+		JSONObject body=new JSONObject();
+		JSONArray params=new JSONArray();
+		JSONObject param1=new JSONObject();
+		param1.put("name",Integer.toString(transactionID));
+		param1.put("position","1");
+		param1.put("type","int");
+		params.add(param1);
+		header.put("messageID", Integer.toString(transactionID));
+		message.put("header", header);
+		body.put("methodName","stopV");
+		body.put("parameters",params);
+		body.put("returnType","int");
+		message.put("body", body);
+		//System.out.println(message.toJSONString());;
+		network=new Connection();
+		network.sendTo(message,destAddr,port);
+		return 1;
+		}
+	
+	public int stopH(int transactionID,String dest,String destAddr,String source,int port) {
+		JSONObject message=new JSONObject();
+		JSONObject header=new JSONObject();
+		header.put("sourceName",source);
+		header.put("destName", dest);
+		JSONObject body=new JSONObject();
+		JSONArray params=new JSONArray();
+		JSONObject param1=new JSONObject();
+		param1.put("name",Integer.toString(transactionID));
+		param1.put("position","1");
+		param1.put("type","int");
+		params.add(param1);
+		header.put("messageID", Integer.toString(transactionID));
+		message.put("header", header);
+		body.put("methodName","stopH");
+		body.put("parameters",params);
+		body.put("returnType","int");
+		message.put("body", body);
+		//System.out.println(message.toJSONString());;
+		network=new Connection();
+		network.sendTo(message,destAddr,port);
 		return 1;
 		}
 	

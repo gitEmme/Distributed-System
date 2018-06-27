@@ -34,14 +34,18 @@ public class JsonCompiler {
 			String filejson2=new String("/home/dude/VS/src/git/CaDSPracticalExamVS/src/Middleware/IDLMoveVertical.json");
 			String filejson3=new String("/home/dude/VS/src/git/CaDSPracticalExamVS/src/Middleware/IDLMoveHorizontal.json");
 			String filejson4=new String("/home/dude/VS/src/git/CaDSPracticalExamVS/src/Middleware/IDLStopMove.json");
-            
-			String interfacciaScritta2=JsonCompiler.writeInterface(filejson1);
+            String filejson5=new String("/home/dude/VS/src/git/CaDSPracticalExamVS/src/Middleware/IDLFeedback.json");
+			
+            String interfacciaScritta5=JsonCompiler.writeInterface(filejson5);
 			System.out.println("Interface generated!");
-			String interfacciaScritta3=JsonCompiler.writeInterface(filejson2);
+            /*
+            String interfacciaScritta1=JsonCompiler.writeInterface(filejson1);
 			System.out.println("Interface generated!");
-			String interfacciaScritta4=JsonCompiler.writeInterface(filejson3);
+			String interfacciaScritta2=JsonCompiler.writeInterface(filejson2);
 			System.out.println("Interface generated!");
-			String interfacciaScritta5=JsonCompiler.writeInterface(filejson4);
+			String interfacciaScritta3=JsonCompiler.writeInterface(filejson3);
+			System.out.println("Interface generated!");
+			String interfacciaScritta4=JsonCompiler.writeInterface(filejson4);
 			System.out.println("Interface generated!");
 			
 			JsonCompiler.createStub(filejson1,"CStubOC");
@@ -61,6 +65,7 @@ public class JsonCompiler {
 			System.out.println("Skeleton generated!");
 			JsonCompiler.createSkeleton(filejson4,"CSkeletonS");
 			System.out.println("Skeleton generated!");
+			*/
     }
 	
 	private static String writeInterface(String file) throws IOException {
@@ -312,10 +317,12 @@ public class JsonCompiler {
 		sk.append("this.port=action."+getServerPort+";\n\t");
 		sk.append("}\n\t\n");
 		
-		sk.append("public "+className+"(String serverName,String serverIP) {\n\t\t");
-		sk.append("this.port=action.getServerPortS();\n\t\t");
+		sk.append("public "+className+"(String serverName,String serverIP,String brokerAddr, int port) {\n\t\t");
+			
 			sk.append("this.serverName=serverName;\n\t\t");
 			sk.append("this.serverIP=serverIP;\n\t\t");
+			sk.append("this.brokerAddr=brokerAddr;\n\t\t");
+			sk.append("this.port=port;\n\t\t");
 		sk.append("}\n\t");
 		
 		sk.append("public int execute(CProcedure p) {\n\t\t");
@@ -435,14 +442,14 @@ public class JsonCompiler {
 	sk.append("JSONObject param1=new JSONObject();\n\t\t");
 	sk.append("JSONObject param2=new JSONObject();\n\t\t");
 	sk.append("JSONObject param3=new JSONObject();\n\t\t");
-	sk.append("header.put(\"sourceName\", action."+getServerName+");\n\t\t");
+	sk.append("header.put(\"sourceName\", this.serverName);\n\t\t");
 	sk.append("header.put(\"destName\", \"broker\");\n\t\t");
 	sk.append("header.put(\"messageID\",\"registerMe\");\n\t\t");
 	sk.append("body.put(\"methodName\", \"registerServer\");\n\t\t");
-	sk.append("param1.put(\"name\", action."+getServerName+");\n\t\t");
+	sk.append("param1.put(\"name\", this.serverName);\n\t\t");
 	sk.append("param1.put(\"type\", \"String\");\n\t\t");
 	sk.append("param1.put(\"position\", Integer.toString(1));\n\t\t");
-	sk.append("param2.put(\"name\", action.getServerAddress());\n\t\t");
+	sk.append("param2.put(\"name\", this.serverIP;\n\t\t");
 	sk.append("param2.put(\"type\", \"String\");\n\t\t");
 	sk.append("param2.put(\"position\", Integer.toString(2));\n\t\t");
 	sk.append("param3.put(\"name\", Integer.toString(action."+getServerPort+"));\n\t\t");
@@ -463,7 +470,7 @@ public class JsonCompiler {
 	sk.append("do{\n\t\t\t");
 	sk.append("network.sendTo(env, brokerAddr, brokerPort);\n\t\t\t");
 	sk.append("sent = true;\n\t\t\t");
-	sk.append("JSONObject received=(JSONObject) network.recvObjFrom(action."+getServerPort+",false);\n\t\t\t");
+	sk.append("JSONObject received=(JSONObject) network.recvObjFrom(Integer.toString(this.port),false);\n\t\t\t");
 	sk.append("if (received!=null) {\n\t\t\t");			
 	sk.append("receivedResponse=true;\n\t\t\t\t");
 	sk.append("System.out.println(received.toJSONString());\n\t\t\t");

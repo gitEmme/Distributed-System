@@ -5,7 +5,7 @@ import java.net.DatagramSocket;
 import java.net.ServerSocket;
 	  
 	/**
-	 * Finds an available port on localhost.
+	 * Finds an available port on localhost for UDP .
 	 */
 	public class PortFinder {
 	  
@@ -25,7 +25,7 @@ import java.net.ServerSocket;
 	  public static int findFreePort() {
 	    for (int i = MIN_PORT_NUMBER; i <= MAX_PORT_NUMBER; i++) {
 	      if (available(i)) {
-	    	  MIN_PORT_NUMBER++;
+	    	  MIN_PORT_NUMBER=i+1; // once a free port is found it is set for a service hence the next min available is set to the next possibly free
 	    	  return i;
 	      }
 	    }

@@ -9,6 +9,7 @@ import java.util.Observer;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
@@ -38,19 +39,20 @@ public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV
     private LinkedList<String> currentRobots= new LinkedList();
   	private Timer timer = new Timer();
     private Thread f,l,r;
+    private static Logger LOG = Logger.getLogger(CaDSEVGUISwingTest.class.getName());
     
     synchronized public void waithere() {
     	while(true) {
     	try {
-            TimeUnit.SECONDS.sleep(1);
+            //TimeUnit.SECONDS.sleep(1);
             //for(String r: currentRobots) {
             	//gui.removeService(r);
             		//currentRobots.remove(r);
                 //System.out.println("removed Service. "+r);
-            	currentRobots=availableRobots;
+            	//currentRobots=availableRobots;
             	//}
             
-            TimeUnit.SECONDS.sleep(1);
+            //TimeUnit.SECONDS.sleep(1);
             //for(String r: availableRobots) {
             	//gui.addService(r);
                 //System.out.println("added Service. "+r);
@@ -101,10 +103,10 @@ public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV
     	f=new Thread() {
     		public void run() {
     			while(true) {
-    				System.out.println("FEEDBACK!");  
+    				LOG.info("FEEDBACK!");  
     				if(currentService!=null) {
 		    	        CResult fb=stub.getResults(currentService);
-		    	        System.out.println(fb.getResultH()+"  "+fb.getResultV());
+		    	        LOG.info(fb.getResultH()+"  "+fb.getResultV());
 		    	        gui.setHorizontalProgressbar(fb.getResultH());
 		    	        gui.setVerticalProgressbar(fb.getResultV());
     				}
@@ -124,7 +126,7 @@ public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV
     	l=new Thread() {
     		public void run() {
     			while(true) {
-	    			System.out.println("ROBOOOOT!");      
+	    			LOG.info("ROBOOOOT!");      
 	    	        availableRobots=stub.getRobotList();
 	    	        //System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAA"+availableRobots.toString());
 	    	        try {
@@ -250,7 +252,7 @@ public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV
     }
 
     public int moveVerticalToPercent(int transactionID, int percent) throws Exception {
-        System.out.println("Call to move vertical -  TID: " + transactionID + " degree " + percent);
+        LOG.info("Call to move vertical -  TID: " + transactionID + " degree " + percent);
         stub.moveVertical(transactionID, percent);       
         return currentV;
     }
@@ -267,14 +269,14 @@ public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV
 
     @Override
     public int moveHorizontalToPercent(int transactionID, int percent) throws Exception {
-        System.out.println("Call to move horizontal -  TID: " + transactionID + " degree " + percent);
+        LOG.info("Call to move horizontal -  TID: " + transactionID + " degree " + percent);
         stub.moveHorizontal(transactionID, percent);
         return currentH;
     }
 
     @Override
     public int stop(int transactionID) throws Exception {
-        System.out.println("Stop movement.... TID: " + transactionID);
+    	LOG.info("Stop movement.... TID: " + transactionID);
         return 0;
     }
 
@@ -285,14 +287,14 @@ public class CaDSEVGUISwingTest implements IIDLCaDSEV3RMIMoveGripper, IIDLCaDSEV
 
     @Override
     public int closeGripper(int transactionID) throws Exception {
-        System.out.println("Close.... TID: " + transactionID);
+    	LOG.info("Close.... TID: " + transactionID);
         stateGripper=stub.grabRelease(transactionID, "close");
         return stateGripper;
     }
 
     @Override
     public int openGripper(int transactionID) throws Exception {
-        System.out.println("open.... TID: " + transactionID);
+    	LOG.info("open.... TID: " + transactionID);
         stateGripper=stub.grabRelease(transactionID, "open");
         return stateGripper;
     }

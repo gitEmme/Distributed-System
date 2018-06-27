@@ -15,17 +15,19 @@ public class CSkeletonS implements Runnable, StopMovement {
 	private String serverName= new String();
 
 	private String serverIP= new String();
-
+	private Registration reg;
+	
 	public CSkeletonS() {
 		this.port=action.getServerPortS();
 	}
 	
 public CSkeletonS(String serverName,String serverIP,String brokerAddr, int port) {
-		this.port=action.getServerPortS();
+		//this.port=action.getServerPortS();
 		this.serverName=serverName;
 		this.serverIP=serverIP;
 		this.brokerAddr=brokerAddr;
 		this.port=port;
+		reg= new Registration(this.serverName, this.brokerAddr, this.serverIP);
 		}
 	public int execute(CProcedure p) {
 		int result=0;
@@ -33,7 +35,15 @@ public CSkeletonS(String serverName,String serverIP,String brokerAddr, int port)
 			case "stopMovement":
 				result= stopMovement((int)p.getParam(1).getValue(p.getParam(1).getName()));
 				break;
+			case "stopH":
+				result= stopH((int)p.getParam(1).getValue(p.getParam(1).getName()));
+				break;
+			
+			case "stopV":
+				result= stopV((int)p.getParam(1).getValue(p.getParam(1).getName()));
+				break;
 			}
+		
 			return result;
 			}
 
@@ -62,12 +72,13 @@ public CSkeletonS(String serverName,String serverIP,String brokerAddr, int port)
 			procedure.AddParam(unmPar);
 			}
 		env.setProcedure(procedure);
-		System.out.println(body.toJSONString());
+		//System.out.println(body.toJSONString());
 		return env;
 		}
 
 	public void run() {
-	registerService();
+	//registerService();
+	reg.registerServer("stopMovement", this.port);
 	while(true) {
 		CEnvelope envelope=unmarshall();
 		CHeader head=envelope.getHeader();
@@ -88,7 +99,7 @@ public CSkeletonS(String serverName,String serverIP,String brokerAddr, int port)
 		env.put("body", body);
 		env.put("result", p);
 		//network.sendTo(env, brokerAddr, brokerPort);
-		System.out.println("STOPPED RESULT"+env.toJSONString());
+		//System.out.println("STOPPED RESULT"+env.toJSONString());
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
@@ -104,7 +115,21 @@ public CSkeletonS(String serverName,String serverIP,String brokerAddr, int port)
 		
 		return p;
 	}
-
+	
+	public int stopH(int transactionID) {
+		//action.setStop(true);
+		int p = action.stopH(transactionID);
+		
+		return p;
+	}
+	
+	public int stopV(int transactionID) {
+		//action.setStop(true);
+		int p = action.stopV(transactionID);
+		
+		return p;
+	}
+/*
 	public void registerService() {
 		network=new Connection();
 		JSONObject env=new JSONObject();
@@ -129,7 +154,7 @@ public CSkeletonS(String serverName,String serverIP,String brokerAddr, int port)
 		param3.put("name", Integer.toString(this.port));
 		param3.put("type", "int");
 		param3.put("position", Integer.toString(3));
-		param4.put("name", "grabRelease");
+		param4.put("name", "stopMovement");
 		param4.put("type", "String");
 		param4.put("position", Integer.toString(4));
 		params.add(param1);
@@ -150,11 +175,12 @@ public CSkeletonS(String serverName,String serverIP,String brokerAddr, int port)
 			JSONObject received=(JSONObject) network.recvObjFrom(this.port,false);
 			if (received!=null) {
 			receivedResponse=true;
-				System.out.println(received.toJSONString());
+				//System.out.println(received.toJSONString());
 			}else{
 			tries --;
-				System.out.println("Timed out: "+  tries + " tries left");
+				//System.out.println("Timed out: "+  tries + " tries left");
 				}
 			}while(((!receivedResponse)&& tries!= 0) && (!sent));
 		}
+		*/
 	}

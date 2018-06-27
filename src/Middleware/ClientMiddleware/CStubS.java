@@ -49,6 +49,66 @@ public int stopMovement(final int transactionID) {
 	move.start();
 	return this.result;
 	}
+
+public int stopH(final int transactionID) {
+	move= new Thread("stopMovement") {
+		public void run() {
+		message=new JSONObject();
+		JSONObject header=new JSONObject();
+		header.put("sourceName",clientName);
+		header.put("destName", serviceName);
+		JSONObject body=new JSONObject();
+		JSONArray params=new JSONArray();
+		JSONObject param1=new JSONObject();
+		param1.put("name",Integer.toString(transactionID));
+		param1.put("position","1");
+		param1.put("type","int");
+		params.add(param1);
+		header.put("messageID", Integer.toString(transactionID));
+		message.put("header", header);
+		body.put("methodName","stopH");
+		body.put("parameters",params);
+		body.put("returnType","int");
+		message.put("body", body);
+		System.out.println(message.toJSONString());
+		counter++;
+		network=new Connection();
+		network.sendTo(message,brokerAddr,brokerPort);
+		}
+		};
+	move.start();
+	return this.result;
+	}
+
+public int stopV(final int transactionID) {
+	move= new Thread("stopMovement") {
+		public void run() {
+		message=new JSONObject();
+		JSONObject header=new JSONObject();
+		header.put("sourceName",clientName);
+		header.put("destName", serviceName);
+		JSONObject body=new JSONObject();
+		JSONArray params=new JSONArray();
+		JSONObject param1=new JSONObject();
+		param1.put("name",Integer.toString(transactionID));
+		param1.put("position","1");
+		param1.put("type","int");
+		params.add(param1);
+		header.put("messageID", Integer.toString(transactionID));
+		message.put("header", header);
+		body.put("methodName","stopV");
+		body.put("parameters",params);
+		body.put("returnType","int");
+		message.put("body", body);
+		System.out.println(message.toJSONString());
+		counter++;
+		network=new Connection();
+		network.sendTo(message,brokerAddr,brokerPort);
+		}
+		};
+	move.start();
+	return this.result;
+	}
 public void run() {
 		running=true;
 		}
