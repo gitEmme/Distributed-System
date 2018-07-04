@@ -180,18 +180,18 @@ public class ActionServer implements Runnable, ICaDSEV3RobotStatusListener, ICaD
 		//System.out.println("grabRelease "+ string);
 		LOG.info("grabRelease "+ string);
 		this.move=string;
-		switch(string) {
+		switch(move) {
 		case "open" : 
-			this.nextState=new String("open");
+			//this.nextState=new String("open");
 			simul.doOpen();
 			this.state=0;
-			this.currentValue=new String("open");
+			//this.currentValue=new String("open");
 			break;
 		case "close" :
-			this.nextState=new String("close");
+			//this.nextState=new String("close");
 			simul.doClose();
 			this.state=1;
-			this.currentValue=new String("close");
+			//this.currentValue=new String("close");
 			break;
 		}
 		return this.state;

@@ -101,7 +101,7 @@ public CSkeletonS(String serverName,String serverIP,String brokerAddr, int port)
 		//network.sendTo(env, brokerAddr, brokerPort);
 		//System.out.println("STOPPED RESULT"+env.toJSONString());
 		try {
-			Thread.sleep(100);
+			Thread.sleep(50);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

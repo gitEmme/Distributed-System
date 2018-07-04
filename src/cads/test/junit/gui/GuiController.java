@@ -174,7 +174,7 @@ public class GuiController implements Runnable{
 			cF.feedback(GuiController.this.serverName);
 			//network.sendTo(env, brokerAddr, brokerPort);
 			sent = true;
-			received=(JSONObject) network.recvObjFrom(clientPortRes,true);
+			received=(JSONObject) network.recvObjFrom(clientPortRes,false);
 			if(received==null) {
 				setCountExc(getCountExc() + 1);
 				//tries --;

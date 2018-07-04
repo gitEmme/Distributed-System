@@ -22,6 +22,7 @@ public class CSkeletonF implements Runnable, Feedback{
 	private String serverIP;
 	private static int idMsg=Integer.MIN_VALUE;
 	private Registration reg;
+	private long lastFood;
 	
 	public CSkeletonF(String serverName,String serverIP,String brokerAddr,int port) {
 		this.port=action.getServerPortF();
@@ -39,6 +40,7 @@ public class CSkeletonF implements Runnable, Feedback{
 		//registerService();
 		while(true) {
 			feedback();
+			
 			}
 		
 	}
@@ -62,23 +64,32 @@ public class CSkeletonF implements Runnable, Feedback{
 		jenv.put("result", jresult);
 		idMsg++;
 		network.sendTo(jenv, brokerAddr, brokerPort);
-		//System.out.println("robot sent feedback "+ jenv.toJSONString());
-		JSONObject received=(JSONObject)network.recvObjFrom(this.port,true );
-		if(received==null) {
-			action.setCountExep(action.getCountExep() + 1);
-		}else {
-			LOG.info("received C0ORDINATOR ALIVE");
-			action.setCountExep(0);
-		}
-		if(action.getCountExep()==1) {
-			action.stopMovement(idMsg);
-		}
 		try {
-			Thread.sleep(100);
+			Thread.sleep(250);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		/*
+		//System.out.println("robot sent feedback "+ jenv.toJSONString());
+		JSONObject received=(JSONObject)network.recvObjFrom(this.port,false );
+		LOG.info("TIME"+(System.currentTimeMillis()-lastFood+" >=500 ?"));
+		if(System.currentTimeMillis()-lastFood >= 500) {
+			action.setCountExep(action.getCountExep() + 1);
+		}
+		if(action.getCountExep()==1) {
+			action.stopMovement(idMsg);
+		}
+		if(received!=null) {
+			//LOG.info(received.toJSONString());
+			lastFood=System.currentTimeMillis();
+			LOG.info("received C0ORDINATOR ALIVE ");
+			action.setCountExep(0);
+		}else {
+			action.setCountExep(action.getCountExep() + 1);
+		}
+		
+		*/
 		return 1;
 	}
 	

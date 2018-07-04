@@ -60,7 +60,7 @@ public Object recvObjFrom(int desPort, boolean timeout)  {
 	try{
 	  //DatagramSocket dSock=new DatagramSocket(desPort);
 	  if(timeout) {
-		  dSock.setSoTimeout(500);	//8 seconds timeout
+		  dSock.setSoTimeout(1500);	//8 seconds timeout
 	  }else {
 		  dSock.setSoTimeout(0);
 	  }

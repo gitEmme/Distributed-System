@@ -11,8 +11,8 @@ import Middleware.ServerMiddleware.CSkeletonV;
 public class Provider {
 	public static void main(String[] args) throws InterruptedException {
 		String robotName= new String("Robot2");
-		String server= new String("localhost");
-		String broker= new String("localhost");
+		String server= new String("172.16.1.100");
+		String broker= new String("172.16.1.62");
 		ActionServer action=ActionServer.getInstance();
 		PortFinder finder= new PortFinder();
 		//String robotName= args[0];

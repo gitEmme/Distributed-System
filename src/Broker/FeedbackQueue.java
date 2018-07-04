@@ -43,7 +43,7 @@ public class FeedbackQueue implements Runnable{
 	public void addFeedbackForRobot(String robotName, JSONObject msg) throws InterruptedException {
 		getRobotQueue(robotName).add(msg);
 		forwardToRobot(robotName);
-		System.out.println("ROBOTNAME    "+robotName);
+		//System.out.println("ROBOTNAME    "+robotName);
 	
 	}
 	
@@ -52,18 +52,18 @@ public class FeedbackQueue implements Runnable{
 	public void forwardToRobot(String robotName) throws InterruptedException {
 		int currentV=0;
 		int currentH=0;
-		LinkedList<JSONObject> robotMsgList=getRobotQueue(robotName);
+		LinkedList<JSONObject> robotFoodList=robotFeedbackQueue.get(robotName);
 		HashMap<String,Integer> registryPort=maps.getServicePortMap(robotName);
 		String destAddress=robotAddressMap.get(robotName);
 		int destPort=registryPort.get("feedback");
-		System.out.println("PORT FOOD "+destPort);
-		for(JSONObject m :robotMsgList ) {
-			JSONObject firstMsg= robotMsgList.getFirst();
+		//System.out.println("PORT FOOD "+destPort);
+		for(JSONObject m :robotFoodList ) {
+			JSONObject firstMsg= robotFoodList.getFirst();
 			JSONObject testa=(JSONObject) firstMsg.get("header");
 			this.sorgente=(String)testa.get("sourceName");
-			lastContactedRobot.put(sorgente, robotName);
-				network.sendTo(firstMsg, destAddress, destPort);
-				robotMsgList.removeFirst();	
+			//lastContactedRobot.put(sorgente, robotName);
+			network.sendTo(firstMsg, destAddress, destPort);
+			robotFoodList.removeFirst();	
 				}
 	}
 

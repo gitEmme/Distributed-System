@@ -91,6 +91,12 @@ public CSkeletonH(String serverName,String serverIP,String brokerAddr,int port) 
 		env.put("body", body);
 		env.put("result", p);
 		//network.sendTo(env, brokerAddr, brokerPort);
+		try {
+			Thread.sleep(50);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		}
 	}
 
@@ -99,58 +105,4 @@ public CSkeletonH(String serverName,String serverIP,String brokerAddr,int port) 
 		return p;
 	}
 
-	/*
-	public void registerService() {
-		network=new Connection();
-		JSONObject env=new JSONObject();
-		JSONObject header=new JSONObject();
-		JSONObject body=new JSONObject();
-		JSONObject result=new JSONObject();
-		JSONArray params=new JSONArray();
-		JSONObject param1=new JSONObject();
-		JSONObject param2=new JSONObject();
-		JSONObject param3=new JSONObject();
-		JSONObject param4=new JSONObject();
-		header.put("sourceName", this.serverName);
-		header.put("destName", "broker");
-		header.put("messageID","registerMe");
-		body.put("methodName", "registerServer");
-		param1.put("name", this.serverName);
-		param1.put("type", "String");
-		param1.put("position", Integer.toString(1));
-		param2.put("name", this.serverIP);
-		param2.put("type", "String");
-		param2.put("position", Integer.toString(2));
-		param3.put("name", Integer.toString(this.port));
-		param3.put("type", "int");
-		param3.put("position", Integer.toString(3));
-		param4.put("name", "moveHorizontal");
-		param4.put("type", "String");
-		param4.put("position", Integer.toString(4));
-		params.add(param1);
-		params.add(param2);
-		params.add(param3);
-		params.add(param4);
-		body.put("parameters", params);
-		body.put("returnType", "String");
-		env.put("header", header);
-		env.put("body", body);
-		env.put("result", result);
-		int tries=5;
-		boolean receivedResponse= false;
-		boolean sent=false;
-		do{
-			network.sendTo(env, brokerAddr, brokerPort);
-			sent = true;
-			JSONObject received=(JSONObject) network.recvObjFrom(this.port,false);
-			if (received!=null) {
-			receivedResponse=true;
-				System.out.println(received.toJSONString());
-			}else{
-			tries --;
-				System.out.println("Timed out: "+  tries + " tries left");
-				}
-			}while(((!receivedResponse)&& tries!= 0) && (!sent));
-		}
-		*/
 	}

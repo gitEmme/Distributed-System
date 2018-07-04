@@ -89,40 +89,43 @@ public class Coordinator implements Runnable {
 		network=new Connection();
 		received=(JSONObject) network.recvObjFrom(this.brokerPort,false);
 		
+	/*
 		Enumeration<String> robots=timestampFood.keys();
 		while (robots.hasMoreElements()) {
 			String robotN=robots.nextElement();
 			long lastF=timestampFood.get(robotN);
-			if(System.currentTimeMillis() -lastF >= 8000) {
+			LOG.info("time food " +(System.currentTimeMillis() -lastF));
+			if(System.currentTimeMillis() -lastF >= 600) {
 				//System.out.println(System.currentTimeMillis() -lastF);
 				registered.removeServers(robotN);
 				//remove its message list
 				//System.out.println("*********** "+robotN+ " IS OFF:DEREGISTERED************");
 				LOG.info("*********** "+robotN+ " IS OFF:DEREGISTERED************");
 				handler.removeRobot(robotN);
+				foodHandler.removeRobot(robotN);
 				timestampFood.replace(robotN, System.currentTimeMillis());
 				timestampFood.remove(robotN,timestampFood.get(robotN));
 				////// implements remove robot here !!!!!
 			}
 		}
+		*/
+
 		Enumeration<String> clients=timestampClients.keys();
 		while (clients.hasMoreElements()) {
 			String clientN=clients.nextElement();
 			long lastC=timestampClients.get(clientN);
 			//System.out.println(System.currentTimeMillis() -lastC);
-			if(System.currentTimeMillis() -lastC >= 700) {
-				
-				registered.removeClients(clientN);
-				//removed CLIENT from registered list
-				//System.out.println("***********CLIENT "+clientN+" IS OFF:DEREGISTERED************");
-				LOG.info("***********CLIENT "+clientN+" IS OFF:DEREGISTERED************");
-				////// implements remove robot here !!!!!
+			LOG.info("time client " +(System.currentTimeMillis() -lastC));
+			if(System.currentTimeMillis() -lastC >= 500) {
 				String robotToStop=handler.getLastContactedRobot(clientN);
 				String robAddr=registered.getServiceAddress(robotToStop);
-				//handler.stopMovement(123456,robotToStop , robAddr, clientN);
-				handler.removeDead(clientN);
 				HashMap<String,Integer> registryPort=registered.getServicePortMap(robotToStop);
-				System.out.println(robotToStop+" "+robAddr+" "+ clientN+" "+registryPort.get("stopMovement"));
+				handler.stopMovement(123456, robotToStop, robAddr, clientN,registryPort.get("stopMovement"));
+				handler.removeDead(clientN);
+				registered.removeClients(clientN);
+				LOG.info("client time STOP"+(System.currentTimeMillis() -lastC));
+				LOG.info("***********CLIENT "+clientN+" IS OFF:DEREGISTERED************");
+				LOG.info(robotToStop+" "+robAddr+" "+ clientN+" "+registryPort.get("stopMovement"));
 				handler.stopMovement(123456, robotToStop, robAddr, clientN,registryPort.get("stopMovement"));
 				timestampClients.remove(clientN, timestampClients.get(clientN));
 			}
@@ -161,16 +164,16 @@ public class Coordinator implements Runnable {
 			if(method.equals("registerServer")) {
 				result=registerServer(called.getParam(1).getName(),called.getParam(2).getName(),called.getParam(4).getName(),Integer.parseInt(called.getParam(3).getName()));
 				//System.out.println("result: "+result);
-				LOG.info("result: "+result);
+				//LOG.info("result: "+result);
 				
 			}
 			if(method.equals("registerClient")){
 				result=registerClient(called.getParam(1).getName(),called.getParam(2).getName(),called.getParam(4).getName(),Integer.parseInt(called.getParam(3).getName()));
-				LOG.info("result: "+result);
+				//LOG.info("result: "+result);
 			}
 			if(method.equals("getServiceList")){
 				//System.out.println("client asking robot list ");
-				LOG.info("client asking robot list ");
+				//LOG.info("client asking robot list ");
 				//System.out.println(received.toJSONString());
 				//this.lastClient=System.currentTimeMillis();
 				//timestampClients.put(h.getSourceName(), this.lastClient);
@@ -200,7 +203,7 @@ public class Coordinator implements Runnable {
 			}
 			if(method.equals("feedback")) {
 				//System.out.println("Receiving feedback from robot");
-				LOG.info("Receiving feedback from robot");
+				//LOG.info("Receiving feedback from robot");
 				String robotName=env.getHeader().getSourceName();
 				this.lastFood=System.currentTimeMillis();
 				JSONObject feedBack=(JSONObject)received.get("result");
@@ -213,7 +216,7 @@ public class Coordinator implements Runnable {
 					timestampFood.replace(destBack, this.lastFood);
 				}
 				String destAddr=registered.getServiceAddress(destBack);
-				System.out.println("hor "+fbH+" vert "+fbV);
+				//System.out.println("hor "+fbH+" vert "+fbV);
 				foodHandler.addFeedbackForRobot(robotName, received);
 				//network.sendTo(received, destAddr, registered.getServicePortMap(robotName).get("feedback"));
 				CResult food=new CResult();
@@ -223,9 +226,8 @@ public class Coordinator implements Runnable {
 				
 			}
 			if(method.equals("getResults")) {
-				//System.out.println("Client asking feedback: ");
 				LOG.info("Client asking feedback: ");
-				//System.out.println(received.toJSONString());
+				
 				this.lastClient=System.currentTimeMillis();
 				if(!timestampClients.containsKey(h.getSourceName())) {
 					timestampClients.put(h.getSourceName(), this.lastClient);
@@ -252,16 +254,11 @@ public class Coordinator implements Runnable {
 					jresult.put("horizontal",Integer.toString(hF));
 					resEnv.put("result", jresult);
 					String destAddress=registered.getServiceAddress(h.getSourceName());
-					//destPort=registered.getServicePort(h.getSourceName());
-					destPort=50012;
-					//System.out.println("AnswerBack :");
-					//System.out.println(resEnv.toJSONString());
 					network.sendTo(resEnv, destAddress, registered.getClientPort(h.getSourceName(),"getResults"));
 				}
 			}
 		}else {
 			if(registered.getClientList().contains(dest) || methodName.equals("stopMovement")) {
-				//responses.add(received);
 				//System.out.println("Message for client"+received.toJSONString());
 				clientMsgMap.put(received, dest);
 				
@@ -276,11 +273,7 @@ public class Coordinator implements Runnable {
 				if(dest!=null&&received!=null) {
 					handler.addMessageForRobot(dest, received);
 				}
-				/*
-				msgAddr.put(received, dest);
-				robotMsgList.add(received);
-				msgEnv.put(received, env);
-				*/
+				
 			}
 		}
 		return env;
@@ -301,7 +294,7 @@ public class Coordinator implements Runnable {
 			//create queue for registered robot
 			//System.out.println(registered.getAvailableRobot().toString());
 			
-			LOG.info("AVAILABLE ROBOTS "+ registered.getAvailableRobot().toString() );
+			//LOG.info("AVAILABLE ROBOTS "+ registered.getAvailableRobot().toString() );
 			return "Robot "+robotName+" Service "+serviceName+" registered on port "+ servicePort;
 		}else {
 			JSONObject ack= new JSONObject();
@@ -334,9 +327,9 @@ public class Coordinator implements Runnable {
 	
 	
 	public static void main(String[] args) {
-		String broker=new String("localhost");
+		//String broker=new String("localhost");
 		
-		//String broker= args[0];
+		String broker= args[0];
 		
 		//pass just the broker address, that is the pi address
 		Coordinator c= new Coordinator(broker);
